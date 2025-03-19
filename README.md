@@ -51,7 +51,6 @@ clang-darwin.link bin/clang-darwin-11.0/debug/link-static/avida-logic9
 common.copy /Users/toaster/bin/avida-logic9
 ...updated 10 targets...
 
-$
 ```
 
 And test:
@@ -85,7 +84,6 @@ update instantaneous_t average_t memory_usage
 98 0.0008 0.0003 4.2695
 99 0.0007 0.0003 4.2695
 
-$
 ```
 
 
