@@ -1,6 +1,4 @@
 # AvidaMT
-=========
-
 AvidaMT is the research software built and used for the journal article "Division of Labor Promotes the Entrenchment of Multicellularity" by Peter L. Conlin, Heather J. Goldsby, Eric Libby, Katherine G. Skocelas, William C. Ratcliff, Charles Ofria, and Benjamin Kerr.  Much of the text below is repeated from the methods for this paper.
 
 
@@ -36,7 +34,7 @@ $ ls
 AvidaMT ealib
 ```
 
-Build AvidaMT:
+And build AvidaMT:
 ```bash
 $ cd AvidaMT && \
     b2
