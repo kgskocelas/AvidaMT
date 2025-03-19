@@ -360,10 +360,11 @@ namespace ealib {
         int num_uni_viable = 0;
         int num_uni_inviable = 0;
         int num_uni = 0;
-        
+        const size_t genome_size = ea.make_individual(*i->traits().founder())->population()[0]->genome().size();
+        //typename EA::individual_ptr_type knockout_loc = ea.make_individual(*i->traits().founder());
 
         // for all places in the genome, we ...
-        for (int z =0; z < knockout_loc->population()[0]->genome().size(); z++) {
+        for (int z =0; z < genome_size; z++) {
             // iterate through each instruction in the isa
             for (int q = 0; q < control_ea->isa().size(); q++) {
                 typename EA::individual_ptr_type knockout_loc = ea.make_individual(*i->traits().founder());
