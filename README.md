@@ -34,10 +34,58 @@ $ ls
 AvidaMT ealib
 ```
 
-And build AvidaMT:
+Build AvidaMT:
 ```bash
 $ cd AvidaMT && \
     b2
+
+...found 192 targets...
+...updating 10 targets...
+clang-darwin.compile.c++ ../ealib/libea/bin/clang-darwin-11.0/debug/link-static/src/expansion.o
+clang-darwin.compile.c++ ../ealib/libea/bin/clang-darwin-11.0/debug/link-static/src/main.o
+clang-darwin.compile.c++ ../ealib/libea/bin/clang-darwin-11.0/debug/link-static/src/cmdline_interface.o
+clang-darwin.archive ../ealib/libea/bin/clang-darwin-11.0/debug/link-static/libea_runner.a
+clang-darwin.archive ../ealib/libea/bin/clang-darwin-11.0/debug/link-static/libea_cmdline.a
+clang-darwin.compile.c++ bin/clang-darwin-11.0/debug/link-static/src/logic9.o
+clang-darwin.link bin/clang-darwin-11.0/debug/link-static/avida-logic9
+common.copy /Users/toaster/bin/avida-logic9
+...updated 10 targets...
+
+$
+```
+
+And test:
+```bash
+$ ./bin/clang-darwin-11.0/debug/link-static/avida-logic9 -c etc/logic9.cfg --verbose
+
+Active configuration options:
+    config=etc/logic9.cfg
+    ea.environment.x=60
+    ea.environment.y=60
+    ea.mutation.deletion.p=0.05
+    ea.mutation.insertion.p=0.05
+    ea.mutation.site.p=0.0075
+    ea.population.size=3600
+    ea.representation.size=100
+    ea.run.checkpoint_name=checkpoint.xml
+    ea.run.epochs=1
+    ea.run.updates=100
+    ea.scheduler.resource_slice=30
+    ea.scheduler.time_slice=30
+    ea.statistics.recording.period=10
+    verbose=
+
+update instantaneous_t average_t memory_usage
+0 0.0004 0.0004 3.8828
+1 0.0000 0.0002 3.8828
+2 0.0000 0.0001 3.8828
+3 0.0001 0.0001 3.8828
+...
+97 0.0008 0.0003 4.2695
+98 0.0008 0.0003 4.2695
+99 0.0007 0.0003 4.2695
+
+$
 ```
 
 
