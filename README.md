@@ -93,7 +93,7 @@ update instantaneous_t average_t memory_usage
 
 * ./mt_lr_gls will run the executable.
 * To set the config file, use: ./mt_lr_gls -c config_file_name.cfg. For example, ./mt_lr_gls -c major_transitions.cfg will run the major transitions executable with the setting in the config file.
-* To override one value on the command line, do something along the lines of the following; ./mt_lr_gls -c config_file_name.cfg --full.option.name=new_value For example, ./mt_lr_gls -c major_transitions.cfg --ea.gls.and_mutation_mult=6 will set the value of and_mutation_mult to 6, overriding whatever was in the config file.
+* To override one value on the command line, do something along the lines of the following: ./mt_lr_gls -c config_file_name.cfg --full.option.name=new_value For example, ./mt_lr_gls -c major_transitions.cfg --ea.gls.and_mutation_mult=6 will set the value of and_mutation_mult to 6, overriding whatever was in the config file.
 * To continue an existing run: ./mt_lr_gls -l <path_to_checkpoint_file>/checkpoint-1000000.xml.gz For example, ./mt_lr_gls -l /mnt/home/hjg/mt/033-gls-ramped/a_33/checkpoint-1000000.xml.gz
 * To perform further analysis, load the check file and then run an analysis tool. ./mt_lr_gls -l /mnt/home/hjg/mt/033-gls-ramped/a_33/checkpoint-1000000.xml.gz --analyze lod_fitness --ea.analysis.input.filename /mnt/home/hjg/mt/033-gls-ramped/a_33/lod-1000000.xml.gz Note that this example, also loads a line of descent file which can also be analyzed.
 
