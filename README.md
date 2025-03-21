@@ -100,4 +100,4 @@ update instantaneous_t average_t memory_usage
 
 ## DOI
 
-References to AvidaMT should be pointed to our DOI on Zenodo: [INSERT WHEN MADE]
+References to AvidaMT should be pointed to our DOI on Zenodo: https://doi.org/10.5281/zenodo.15066421
