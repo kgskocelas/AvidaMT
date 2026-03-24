@@ -704,9 +704,13 @@ namespace ealib {
                             .write(num_germ/metapop.size())
                             .write(mean_gen)
                             .write(mean_gen_diff)
-                            .write(total_workload/organism_size)
-                            .write(germ_workload/num_germ)
-                            .endl();
+                            .write(total_workload/organism_size);
+                            if (num_germ) {
+                                df.write(germ_workload/num_germ);
+                            } else {
+                                df.write(0.0);
+                            }
+                            df.endl();
                             
                             if ((exit_mean_size > 5) ||
                                 (mean_gen_diff > 100))  {
@@ -724,9 +728,13 @@ namespace ealib {
                                 .write(num_germ/metapop.size())
                                 .write(mean_gen)
                                 .write(mean_gen_diff)
-                                .write(total_workload/organism_size)
-                                .write(germ_workload/num_germ)
-                                .write(reverted)
+                                .write(total_workload/organism_size);
+                                if (num_germ) {
+                                    df2.write(germ_workload/num_germ);
+                                } else {
+                                    df2.write(0.0);
+                                }
+                                df2.write(reverted)
                                 .endl();
                             }
                             if (cur_update == max_update){
@@ -737,9 +745,13 @@ namespace ealib {
                                 .write(num_germ/metapop.size())
                                 .write(mean_gen)
                                 .write(mean_gen_diff)
-                                .write(total_workload/organism_size)
-                                .write(germ_workload/num_germ)
-                                .write("2")
+                                .write(total_workload/organism_size);
+                                if (num_germ) {
+                                    df2.write(germ_workload/num_germ);
+                                } else {
+                                    df2.write(0.0);
+                                }
+                                df2.write("2")
                                 .endl();
                             }
                         }
@@ -938,10 +950,14 @@ namespace ealib {
                             .write(num_germ/metapop.size())
                             .write(mean_gen)
                             .write(mean_gen_diff)
-                            .write(total_workload/organism_size)
-                            .write(germ_workload/num_germ)
-                            .endl();
-                            
+                            .write(total_workload/organism_size);
+                            if (num_germ) {
+                                df.write(germ_workload/num_germ);
+                            } else {
+                                df.write(0.0);
+                            }
+                            df.endl();
+
                             if (mean_gen_diff > 100)  {
                                 int reverted = 0;
                                 
@@ -957,9 +973,13 @@ namespace ealib {
                                 .write(num_germ/metapop.size())
                                 .write(mean_gen)
                                 .write(mean_gen_diff)
-                                .write(total_workload/organism_size)
-                                .write(germ_workload/num_germ)
-                                .write(reverted)
+                                .write(total_workload/organism_size);
+                                if (num_germ) {
+                                    df2.write(germ_workload/num_germ);
+                                } else {
+                                    df2.write(0.0);
+                                }
+                                df2.write(reverted)
                                 .endl();
                             }
                             if (cur_update == max_update){
@@ -970,16 +990,20 @@ namespace ealib {
                                 .write(num_germ/metapop.size())
                                 .write(mean_gen)
                                 .write(mean_gen_diff)
-                                .write(total_workload/organism_size)
-                                .write(germ_workload/num_germ)
-                                .write("2")
+                                .write(total_workload/organism_size);
+                                if (num_germ) {
+                                    df2.write(germ_workload/num_germ);
+                                } else {
+                                    df2.write(0.0);
+                                }
+                                df2.write("2")
                                 .endl();
                             }
                         }
                     }
-                    
+
                 }
-                
+
                 //add_ent += 100;
                 add_ent *= 2;
                 if (add_ent >= 4096) {
@@ -1143,9 +1167,13 @@ namespace ealib {
                         .write(num_germ/metapop.size())
                         .write(mean_gen)
                         .write(mean_gen_diff)
-                        .write(total_workload/organism_size)
-                        .write(germ_workload/num_germ)
-                        .endl();
+                        .write(total_workload/organism_size);
+                        if (num_germ) {
+                            df.write(germ_workload/num_germ);
+                        } else {
+                            df.write(0.0);
+                        }
+                        df.endl();
                         
                         if (mean_gen_diff > 100)  {
                             int reverted = 0;
@@ -1162,9 +1190,13 @@ namespace ealib {
                             .write(num_germ/metapop.size())
                             .write(mean_gen)
                             .write(mean_gen_diff)
-                            .write(total_workload/organism_size)
-                            .write(germ_workload/num_germ)
-                            .write(reverted)
+                            .write(total_workload/organism_size);
+                            if (num_germ) {
+                                df2.write(germ_workload/num_germ);
+                            } else {
+                                df2.write(0.0);
+                            }
+                            df2.write(reverted)
                             .write(lod_depth)
                             .endl();
                         }
@@ -1176,9 +1208,13 @@ namespace ealib {
                             .write(num_germ/metapop.size())
                             .write(mean_gen)
                             .write(mean_gen_diff)
-                            .write(total_workload/organism_size)
-                            .write(germ_workload/num_germ)
-                            .write("2")
+                            .write(total_workload/organism_size);
+                            if (num_germ) {
+                                df2.write(germ_workload/num_germ);
+                            } else {
+                                df2.write(0.0);
+                            }
+                            df2.write("2")
                             .write(lod_depth)
                             .endl();
                         }
@@ -1734,9 +1770,13 @@ LIBEA_ANALYSIS_TOOL(lod_dol) {
                     .write(t_nor)
                     .write(t_xor)
                     .write(t_equals)
-                    .write(total_tasks)
-                    .write(total_tasks/mean_task_switches)
-                    .write(shannon_sum)
+                    .write(total_tasks);
+                    if (mean_task_switches > 0) {
+                        df.write(total_tasks/mean_task_switches);
+                    } else {
+                        df.write(0.0);
+                    }
+                    df.write(shannon_sum)
                     .write(shannon_norm);
                     df.endl();
 
