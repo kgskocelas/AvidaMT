@@ -179,7 +179,114 @@ replace the Jamroot-based build system.
   with it; pass ts-specific options directly or create a `ts_mt.cfg`.
 - The `ea.population.size` must be ≥ `ea.environment.x × ea.environment.y` for
   digital evolution experiments (this is an existing runtime assertion).
-- The old `Jamroot` is kept for reference but is no longer used.
 - Old b2 build: `b2` binary exists at `/usr/local/bin/b2` but `ealib` Jamfiles
   cannot find `/boost` (the old build system no longer works — this is expected,
   it's exactly why ealib-modern was created).
+
+---
+
+## Step 5 — Write INSTALL.md (2026-03-25)
+
+Created `INSTALL.md` with macOS (Homebrew) installation instructions:
+- Install `boost` and `cmake` via Homebrew
+- Clone `ealib-modern` and `AvidaMT` as siblings
+- Configure with `cmake -B build -S .`
+- Build with `cmake --build build -- -j$(sysctl -n hw.logicalcpu)`
+- Smoke-test all four executables
+
+Instructions were verified by running a clean build from scratch (deleted `build/` and reconfigured) and re-running all three smoke tests — all passed.
+
+---
+
+## Step 6 — Remove old build system and IDE files (2026-03-25)
+
+Removed files that were committed to the repo but are no longer needed after the CMake migration:
+
+| File / Directory         | Reason removed                          |
+|--------------------------|-----------------------------------------|
+| `Jamroot`                | Old Boost.Build file, replaced by CMakeLists.txt |
+| `bin/config.log`         | b2 configure log                        |
+| `bin/project-cache.jam`  | b2 project cache                        |
+| `bin/clang-darwin-10.0/` | Old b2-compiled binary and object file  |
+| `etc/avida4.xcconfig`    | Xcode build configuration, no longer used |
+| `mt2.xcodeproj/`         | Old Xcode project                       |
+| `mt2.xcworkspace/`       | Old Xcode workspace                     |
+| `math/.DS_Store`         | macOS metadata file                     |
+
+Also deleted untracked run-artifact files that had accumulated in the repo root (`checkpoint-5.xml`, `lod-5.xml`, `dol.dat`, `mt_gls.dat`, `mt_gls_detail.dat`, `tasks.dat`). These are now covered by `.gitignore` patterns (`checkpoint-*.xml`, `lod-*.xml`, `*.dat`).
+
+---
+
+## Step 8 — Verify and fix "Using AvidaMT" section in README.md (2026-03-25)
+
+Ran each command in the README's "Using AvidaMT" section to verify accuracy.
+
+### Commands tested
+
+**Run with config file** — passed:
+```bash
+./build/mt_lr_gls -c etc/major_transitions.cfg --ea.run.updates=5 --ea.rng.seed=1
+```
+
+**Override a config value** — passed (confirmed `ea.gls.and_mutation_mult` changed from 1 to 6 in active config output):
+```bash
+./build/mt_lr_gls -c etc/major_transitions.cfg --ea.gls.and_mutation_mult=6 --ea.run.updates=5 --ea.rng.seed=1
+```
+
+**Continue from checkpoint** — needed investigation first.
+
+Ran a 10-update experiment to discover what checkpoint files are actually produced. Found that the framework saves:
+- `checkpoint-{N}.xml` — full EA state (≈45 MB for this config)
+- `lod-{N}.xml` — line-of-descent file
+
+The README had used `.xml.gz` in the checkpoint path placeholder. While the loader supports `.gz` files, the default output is uncompressed `.xml`. Updated the placeholder to `.xml` to match actual behavior.
+
+Tested resume:
+```bash
+./build/mt_lr_gls -l checkpoint-10.xml --ea.run.updates=5 --ea.rng.seed=1
+```
+**Result:** Loaded cleanly, continued from update 10.
+
+**Run analysis** — failed, then diagnosed and fixed.
+
+The README had `--analyze lod_fitness`. Read `src/mt_lr_gls.cpp` and found `lod_fitness` is commented out in `gather_tools()` (line 290). Running it produced:
+```
+Caught exception: bad argument: Could not find analysis tool: lod_fitness
+```
+
+The registered analysis tools for `mt_lr_gls` are:
+`lod_dol`, `lod_entrench`, `lod_size`, `lod_entrench_add`, `lod_entrench_add_start_stop`, `lod_fitness_combo`, `lod_knockouts_capabilities`, `lod_report_gs`.
+
+Read `src/lod_knockouts_fitness.h` to confirm `lod_dol` reads the LOD file via `--ea.analysis.input.filename` (the same flag the README used). Updated the README to use `lod_dol` and added the list of available tools.
+
+### Changes made to README.md
+
+| Item | Before | After | Reason |
+|------|--------|-------|--------|
+| Checkpoint path extension | `checkpoint-1000000.xml.gz` | `checkpoint-1000000.xml` | Default output is uncompressed |
+| LOD path extension | `lod-1000000.xml.gz` | `lod-1000000.xml` | Default output is uncompressed |
+| Analysis tool name | `lod_fitness` | `lod_dol` | `lod_fitness` is not registered; causes fatal error |
+| Available tools | (not listed) | Listed all 8 registered tools | Help users know what tools exist |
+
+---
+
+## Step 7 — Update README.md and add HPCC instructions to INSTALL.md (2026-03-25)
+
+### README.md
+
+- `Dependencies` — removed references to old ealib (dknoester) and Boost 1.71.0; now lists ealib-modern and Boost ≥ 1.80
+- `Installing AvidaMT` — replaced the old b2/Singularity install walkthrough with a one-line pointer to `INSTALL.md`
+- `Using AvidaMT` — replaced inline prose with a table of executables and labeled command blocks; corrected all binary paths from `./mt_lr_gls` to `./build/mt_lr_gls`
+
+### INSTALL.md
+
+Added `## MSU HPCC` section covering:
+- Login and requesting a development node (`dev --time=01:00:00`)
+- Finding a compatible Boost module with `module spider Boost`
+- Loading GCC, CMake, and Boost modules (`module purge` + `module load`)
+- Cloning ealib-modern and AvidaMT as siblings under `$HOME`
+- Configure (`cmake -B build -S .`) and build (`cmake --build build -- -j$(nproc)`)
+- Smoke-test verification commands
+- Saving the module setup with `module save avidamt-build` for future sessions
+- A minimal SLURM array job script for running experiment replicates
+- HPCC-specific troubleshooting (`$EBROOTBOOST` for Boost path override)
