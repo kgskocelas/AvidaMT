@@ -101,19 +101,90 @@ All four executables will be compiled into `build/`:
 
 ## Step 5 — Verify
 
-Run a quick smoke test for each executable (5 updates, fixed seed):
+Data files are written to the **current working directory**. The commands below run each test inside its own subdirectory so the output files from different executables do not overwrite each other. Run all commands from inside `AvidaMT/`.
+
+---
+
+### Test 1 — avida-logic9
 
 ```bash
-./build/avida-logic9 -c etc/logic9.cfg --ea.run.updates=5 --ea.rng.seed=42
-./build/mt_lr_gls -c etc/major_transitions.cfg --ea.run.updates=5 --ea.rng.seed=42
-./build/mt_lr_gls_dol_control -c etc/major_transitions.cfg --ea.run.updates=5 --ea.rng.seed=42
+mkdir -p verify/logic9
+(cd verify/logic9 && ../../build/avida-logic9 -c ../../etc/logic9.cfg --ea.run.updates=5 --ea.rng.seed=42)
 ```
 
-Each should print the active configuration followed by per-update statistics and exit cleanly.
+`avida-logic9` does not write data files. Confirm it ran correctly:
 
-> **Note:** `ts_mt` does not accept `ea.gls.*` options, so `major_transitions.cfg` cannot
-> be used with it directly. Pass `ts_mt`-specific options on the command line or provide a
-> custom config file.
+- No crash or error message appears in the terminal.
+- The output includes the active configuration (key–value pairs) followed by per-update progress.
+- Check the exit code immediately after: `echo $?` should print `0`.
+
+---
+
+### Test 2 — mt_lr_gls
+
+```bash
+mkdir -p verify/mt_lr_gls
+(cd verify/mt_lr_gls && ../../build/mt_lr_gls -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
+```
+
+Three data files are written to `verify/mt_lr_gls/`. Open each with any text editor or `cat`:
+
+**`tasks.dat`** — counts of each logic task performed across the entire population, recorded once every 100 updates. The file should contain a header line followed by exactly one data row. The first column of that row should be `100` (the update number).
+
+```
+update not nand and ornot or andnot nor xor equals
+100    0   0    0   0      0  0       0   0   0
+```
+
+(Task counts may be 0 at update 100; the key checks are that the file exists, has two lines, and the `update` column reads `100`.)
+
+**`mt_gls.dat`** — multicell replication and germ/soma statistics, recorded every 100 updates. Columns include `update`, `mean_multicell_size`, `mean_pop_num`, `num_orgs`, and many others. Check:
+- One header line followed by one data row with `update = 100`.
+- `num_orgs` > 0 (population is alive and running).
+- `mean_multicell_size` > 0 (cells are present inside each multicell).
+
+**`dol.dat`** — division-of-labor statistics, recorded every 100 updates. Columns: `update mean_shannon_sum mean_shannon_norm mean_active_pop mean_pop_count`. Check:
+- One header line followed by one data row with `update = 100`.
+- `mean_pop_count` > 0.
+
+---
+
+### Test 3 — mt_lr_gls_dol_control
+
+```bash
+mkdir -p verify/mt_lr_gls_dol_control
+(cd verify/mt_lr_gls_dol_control && ../../build/mt_lr_gls_dol_control -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
+```
+
+`mt_lr_gls_dol_control` does not write `dol.dat`. Check:
+
+**`tasks.dat`** — same checks as Test 2 (header + one row with `update = 100`).
+
+**`mt_gls.dat`** — same checks as Test 2 (`num_orgs > 0`, `mean_multicell_size > 0`).
+
+---
+
+### Test 4 — ts_mt
+
+`ts_mt` does not accept the `[ea.gls]` options present in `major_transitions.cfg`. Use `etc/ts_mt.cfg` instead (the same parameters minus that section):
+
+```bash
+mkdir -p verify/ts_mt
+(cd verify/ts_mt && ../../build/ts_mt -c ../../etc/ts_mt.cfg --ea.run.updates=100 --ea.rng.seed=42)
+```
+
+Three data files are written to `verify/ts_mt/`. Check:
+
+**`tasks.dat`** — same checks as Test 2.
+
+**`ts.dat`** — task-switching statistics, recorded every 100 updates. Columns: `update sub_pop_size pop_size mean ts`. Check:
+- One header line followed by one data row with `update = 100`.
+- `sub_pop_size` equals the configured metapopulation size (`1000` by default).
+- `pop_size` > 0.
+
+**`mt.dat`** — multicell replication summary, recorded every 100 updates. Columns: `update mean_rep_time mean_res mean_multicell_size replication_count mean_generation`. Check:
+- One header line followed by one data row with `update = 100`.
+- `mean_multicell_size` > 0.
 
 ---
 
@@ -213,12 +284,38 @@ The build will take a few minutes. When it finishes, the four executables are in
 
 ### Step 6 — Verify
 
+Data files are written to the current working directory. Run each test from its own subdirectory (from inside `$HOME/AvidaMT/`):
+
+**avida-logic9** — no data files; verify via exit code and stdout only.
+
 ```bash
-./build/avida-logic9 -c etc/logic9.cfg --ea.run.updates=5 --ea.rng.seed=42
-./build/mt_lr_gls -c etc/major_transitions.cfg --ea.run.updates=5 --ea.rng.seed=42
+mkdir -p verify/logic9
+(cd verify/logic9 && ../../build/avida-logic9 -c ../../etc/logic9.cfg --ea.run.updates=5 --ea.rng.seed=42)
+echo $?   # should print 0
 ```
 
-Each should print the active configuration and run 5 updates cleanly.
+**mt_lr_gls** — writes `tasks.dat`, `mt_gls.dat`, and `dol.dat` to the output directory.
+
+```bash
+mkdir -p verify/mt_lr_gls
+(cd verify/mt_lr_gls && ../../build/mt_lr_gls -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
+```
+
+**mt_lr_gls_dol_control** — writes `tasks.dat` and `mt_gls.dat` (no `dol.dat`).
+
+```bash
+mkdir -p verify/mt_lr_gls_dol_control
+(cd verify/mt_lr_gls_dol_control && ../../build/mt_lr_gls_dol_control -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
+```
+
+**ts_mt** — use `etc/ts_mt.cfg` (not `major_transitions.cfg`); writes `tasks.dat`, `ts.dat`, and `mt.dat`.
+
+```bash
+mkdir -p verify/ts_mt
+(cd verify/ts_mt && ../../build/ts_mt -c ../../etc/ts_mt.cfg --ea.run.updates=100 --ea.rng.seed=42)
+```
+
+For each data file: open it with `cat` or a text editor and confirm a header line is present followed by one data row whose `update` column reads `100`. See the macOS **Step 5 — Verify** section above for the full list of per-file checks.
 
 ### Step 7 — Save your module setup
 
