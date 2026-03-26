@@ -9,19 +9,29 @@
 
 These instructions cover a native macOS install using Homebrew and the modern CMake-based build system.
 
+These instructions have been verified on:
+
+| Component      | Version                        |
+|----------------|--------------------------------|
+| macOS          | Ventura 13.7.8 (Intel x86_64)  |
+| Xcode          | 15.2 (Apple Clang 15.0.0)      |
+| Homebrew Boost | 1.87.0                         |
+| CMake          | 4.3.0                          |
+
 ---
 
-## Prerequisites
+### Step 1: Prerequisites
 
-- macOS with [Homebrew](https://brew.sh) installed
-- Xcode Command Line Tools (`xcode-select --install`)
-
----
-
-## Step 1 — Install dependencies
+Install the Xcode Command Line Tools (skip if already installed):
 
 ```bash
-brew install boost cmake
+xcode-select --install
+```
+
+Install [Homebrew](https://brew.sh), then use it to install CMake and Boost:
+
+```bash
+brew install cmake boost
 ```
 
 This installs a modern Boost (1.87.0 or later) and CMake. No manual Boost configuration is needed — CMake finds it automatically.
@@ -33,7 +43,7 @@ This installs a modern Boost (1.87.0 or later) and CMake. No manual Boost config
 AvidaMT depends on **ealib-modern**, which must be cloned as a sibling directory (both repos live inside the same parent folder).
 
 ```bash
-mkdir -p ~/Code && cd ~/Code
+mkdir -p ~/Avida && cd ~/Avida
 git clone https://github.com/kgskocelas/ealib-modern.git ealib-modern
 git clone https://github.com/kgskocelas/AvidaMT.git AvidaMT
 ```
@@ -41,7 +51,7 @@ git clone https://github.com/kgskocelas/AvidaMT.git AvidaMT
 Confirm the layout looks like this:
 
 ```
-Code/
+Avida/
 ├── ealib-modern/
 └── AvidaMT/
 ```
@@ -122,7 +132,6 @@ Verify that `ealib-modern/` and `AvidaMT/` are in the same parent directory. The
 Make sure Xcode Command Line Tools are up to date:
 ```bash
 xcode-select --install
-softwareupdate --all --install --force
 ```
 
 ---
@@ -216,13 +225,13 @@ Each should print the active configuration and run 5 updates cleanly.
 Modules are reset at the end of each login session. Save the current setup so you can restore it quickly:
 
 ```bash
-module save avidamt-build
+module save avidamt
 ```
 
 In future sessions, restore it before building or running experiments:
 
 ```bash
-module restore avidamt-build
+module restore avidamt
 ```
 
 ### Running experiments via SLURM
@@ -237,7 +246,7 @@ Full AvidaMT experiments are computationally expensive and must be submitted as 
 #SBATCH --cpus-per-task=1
 #SBATCH --output=slurm-%j.out
 
-module restore avidamt-build
+module restore avidamt
 cd $HOME/AvidaMT
 ./build/mt_lr_gls -c etc/major_transitions.cfg --ea.rng.seed=$SLURM_ARRAY_TASK_ID
 ```
