@@ -318,6 +318,7 @@ Submit with:
 sbatch --array=1-30 run_mt.sb
 ```
 
+run_mt.sb is your sbatch file (SLURM job script).
 The `--array` flag runs 30 independent replicates, each with a different random seed derived from `$SLURM_ARRAY_TASK_ID`.
 
 ### Troubleshooting (HPCC)
