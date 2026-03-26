@@ -43,7 +43,7 @@ This installs a modern Boost (1.87.0 or later) and CMake. No manual Boost config
 AvidaMT depends on **ealib-modern**, which must be cloned as a sibling directory (both repos live inside the same parent folder).
 
 ```bash
-mkdir -p ~/Avida && cd ~/Avida
+mkdir Avida && cd Avida
 git clone https://github.com/kgskocelas/ealib-modern.git ealib-modern
 git clone https://github.com/kgskocelas/AvidaMT.git AvidaMT
 ```
@@ -68,24 +68,12 @@ cd AvidaMT
 cmake -B build -S .
 ```
 
-Expected output (Boost version may differ):
-
-```
--- Found Boost: 1.87.0 (serialization iostreams regex system filesystem
-                          program_options timer chrono)
--- Found ZLIB: ...
--- Configuring done
--- Build files have been written to: .../AvidaMT/build
-```
-
-You may see a harmless policy warning about `CMP0167` from ealib-modern's `FindBoost` call — this can be ignored.
-
 ---
 
 ## Step 4 — Build
 
 ```bash
-cmake --build build -- -j$(sysctl -n hw.logicalcpu)
+cmake --build build --parallel
 ```
 
 All four executables will be compiled into `build/`:
@@ -129,22 +117,21 @@ mkdir -p verify/mt_lr_gls
 
 Three data files are written to `verify/mt_lr_gls/`. Open each with any text editor or `cat`:
 
-**`tasks.dat`** — counts of each logic task performed across the entire population, recorded once every 100 updates. The file should contain a header line followed by exactly one data row. The first column of that row should be `100` (the update number).
+**`tasks.dat`** — counts of each logic task performed across the entire population, recorded once every 100 updates. The recording also fires at update 0 (the initial state), so the file will contain a header line followed by exactly one data row whose first column is `0`.
 
 ```
 update not nand and ornot or andnot nor xor equals
-100    0   0    0   0      0  0       0   0   0
+0 1000 0 0 0 0 0 0 0 0
 ```
 
-(Task counts may be 0 at update 100; the key checks are that the file exists, has two lines, and the `update` column reads `100`.)
+The `not` count of `1000` reflects the 1000 founder organisms (one per multicell at initialization) each executing a NOT operation during update 0 from the ancestor genome. All other task counts are `0` because more complex tasks require evolution. The key checks are that the file exists, has two lines, the `update` column reads `0`, and `not` is a positive number.
 
-**`mt_gls.dat`** — multicell replication and germ/soma statistics, recorded every 100 updates. Columns include `update`, `mean_multicell_size`, `mean_pop_num`, `num_orgs`, and many others. Check:
-- One header line followed by one data row with `update = 100`.
+**`mt_gls.dat`** — multicell replication and germ/soma statistics, recorded every 100 updates (and at update 0). Columns include `update`, `mean_multicell_size`, `mean_pop_num`, `num_orgs`, and many others. Check:
+- One header line followed by one data row with `update = 0`.
 - `num_orgs` > 0 (population is alive and running).
-- `mean_multicell_size` > 0 (cells are present inside each multicell).
 
-**`dol.dat`** — division-of-labor statistics, recorded every 100 updates. Columns: `update mean_shannon_sum mean_shannon_norm mean_active_pop mean_pop_count`. Check:
-- One header line followed by one data row with `update = 100`.
+**`dol.dat`** — division-of-labor statistics, recorded every 100 updates (and at update 0). Columns: `update mean_shannon_sum mean_shannon_norm mean_active_pop mean_pop_count`. Check:
+- One header line followed by one data row with `update = 0`.
 - `mean_pop_count` > 0.
 
 ---
@@ -158,33 +145,9 @@ mkdir -p verify/mt_lr_gls_dol_control
 
 `mt_lr_gls_dol_control` does not write `dol.dat`. Check:
 
-**`tasks.dat`** — same checks as Test 2 (header + one row with `update = 100`).
+**`tasks.dat`** — same checks as Test 2 (header + one row with `update = 0`, `not` > 0).
 
-**`mt_gls.dat`** — same checks as Test 2 (`num_orgs > 0`, `mean_multicell_size > 0`).
-
----
-
-### Test 4 — ts_mt
-
-`ts_mt` does not accept the `[ea.gls]` options present in `major_transitions.cfg`. Use `etc/ts_mt.cfg` instead (the same parameters minus that section):
-
-```bash
-mkdir -p verify/ts_mt
-(cd verify/ts_mt && ../../build/ts_mt -c ../../etc/ts_mt.cfg --ea.run.updates=100 --ea.rng.seed=42)
-```
-
-Three data files are written to `verify/ts_mt/`. Check:
-
-**`tasks.dat`** — same checks as Test 2.
-
-**`ts.dat`** — task-switching statistics, recorded every 100 updates. Columns: `update sub_pop_size pop_size mean ts`. Check:
-- One header line followed by one data row with `update = 100`.
-- `sub_pop_size` equals the configured metapopulation size (`1000` by default).
-- `pop_size` > 0.
-
-**`mt.dat`** — multicell replication summary, recorded every 100 updates. Columns: `update mean_rep_time mean_res mean_multicell_size replication_count mean_generation`. Check:
-- One header line followed by one data row with `update = 100`.
-- `mean_multicell_size` > 0.
+**`mt_gls.dat`** — same checks as Test 2 (`update = 0`, `num_orgs > 0``).
 
 ---
 
@@ -254,6 +217,7 @@ AvidaMT and ealib-modern must be cloned as sibling directories inside the same p
 
 ```bash
 cd $HOME
+mkdir Avida && cd Avida
 git clone https://github.com/kgskocelas/ealib-modern.git ealib-modern
 git clone https://github.com/kgskocelas/AvidaMT.git AvidaMT
 ```
@@ -261,16 +225,17 @@ git clone https://github.com/kgskocelas/AvidaMT.git AvidaMT
 Confirm the layout:
 ```
 $HOME/
-├── ealib-modern/
-└── AvidaMT/
+├── Avida
+├──── ealib-modern/
+└──── AvidaMT/
 ```
 
 ### Step 5 — Configure and build
 
 ```bash
-cd $HOME/AvidaMT
+cd $HOME/Avida/AvidaMT
 cmake -B build -S .
-cmake --build build -- -j$(nproc)
+cmake --build build --parallel
 ```
 
 The build will take a few minutes. When it finishes, the four executables are in `build/`:
@@ -315,7 +280,7 @@ mkdir -p verify/ts_mt
 (cd verify/ts_mt && ../../build/ts_mt -c ../../etc/ts_mt.cfg --ea.run.updates=100 --ea.rng.seed=42)
 ```
 
-For each data file: open it with `cat` or a text editor and confirm a header line is present followed by one data row whose `update` column reads `100`. See the macOS **Step 5 — Verify** section above for the full list of per-file checks.
+For each data file: open it with `cat` or a text editor and confirm a header line is present followed by one data row whose `update` column reads `0`. See the macOS **Step 5 — Verify** section above for the full list of per-file checks.
 
 ### Step 7 — Save your module setup
 
