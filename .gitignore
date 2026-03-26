@@ -1,0 +1,13 @@
+# CMake build directory
+build/
+
+# EA run outputs
+checkpoint-*.xml
+lod-*.xml
+*.dat
+
+# macOS
+.DS_Store
+
+# Claude Code session files
+.claude/
