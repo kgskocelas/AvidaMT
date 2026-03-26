@@ -77,7 +77,7 @@ struct configurable_indel {
         if (_ins_p > 0
             && repr.size() < static_cast<std::size_t>(get<REPRESENTATION_MAX_SIZE>(ea))
             && ea.rng().p(_ins_p)) {
-            std::size_t csize = ea.rng()(get<MUTATION_INDEL_MIN_SIZE>(ea), get<MUTATION_INDEL_MAX_SIZE>(ea));
+            std::size_t csize = ea.rng()(get<MUTATION_INDEL_MIN_SIZE>(ea), get<MUTATION_INDEL_MAX_SIZE>(ea) + 1);
             typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
             typename EA::genome_type chunk(src, src + csize);
             repr.insert(ea.rng().choice(repr.begin(), repr.end()), chunk.begin(), chunk.end());
@@ -85,7 +85,7 @@ struct configurable_indel {
         if (_del_p > 0
             && repr.size() > static_cast<std::size_t>(get<REPRESENTATION_MIN_SIZE>(ea))
             && ea.rng().p(_del_p)) {
-            std::size_t csize = ea.rng()(get<MUTATION_INDEL_MIN_SIZE>(ea), get<MUTATION_INDEL_MAX_SIZE>(ea));
+            std::size_t csize = ea.rng()(get<MUTATION_INDEL_MIN_SIZE>(ea), get<MUTATION_INDEL_MAX_SIZE>(ea) + 1);
             typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
             repr.erase(src, src + csize);
         }
@@ -756,8 +756,8 @@ struct gls_replication_ps : end_of_update_event<EA> {
                 .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload.size())
                 .write(std::accumulate(soma_workload.begin(), soma_workload.end(), 0.0)/soma_workload.size())
                 .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload.size())
-                .write(std::accumulate(prop_size.begin(), prop_size.end(), 0.0)/prop_size.size())
                 .write(num_rep)
+                .write(std::accumulate(prop_size.begin(), prop_size.end(), 0.0)/prop_size.size())
                 .endl();
                 num_rep = 0;
             } else {
