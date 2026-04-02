@@ -515,9 +515,9 @@ struct gls_replication : end_of_update_event<EA> {
                 .write(std::accumulate(pop_num.begin(), pop_num.end(), 0.0)/pop_num.size())
                 .write(std::accumulate(germ_percent.begin(), germ_percent.end(), 0.0)/germ_percent.size())
                 .write(std::accumulate(germ_workload.begin(), germ_workload.end(), 0.0)/germ_workload.size())
-                .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload.size())
+                .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload_var.size())
                 .write(std::accumulate(soma_workload.begin(), soma_workload.end(), 0.0)/soma_workload.size())
-                .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload.size())
+                .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload_var.size())
                 .write(num_rep)
                 .endl();
                 num_rep = 0;
@@ -753,9 +753,9 @@ struct gls_replication_ps : end_of_update_event<EA> {
                 .write(std::accumulate(pop_num.begin(), pop_num.end(), 0.0)/pop_num.size())
                 .write(std::accumulate(germ_percent.begin(), germ_percent.end(), 0.0)/germ_percent.size())
                 .write(std::accumulate(germ_workload.begin(), germ_workload.end(), 0.0)/germ_workload.size())
-                .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload.size())
+                .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload_var.size())
                 .write(std::accumulate(soma_workload.begin(), soma_workload.end(), 0.0)/soma_workload.size())
-                .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload.size())
+                .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload_var.size())
                 .write(num_rep)
                 .write(std::accumulate(prop_size.begin(), prop_size.end(), 0.0)/prop_size.size())
                 .endl();
