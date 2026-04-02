@@ -369,7 +369,7 @@ namespace ealib {
             df.write(best_ind);
             df.write(variance(workload));
             df.write(shannon_sum);
-            df.write(shannon_sum / tps.size());
+            df.write(tps.size() > 0 ? shannon_sum / tps.size() : 0.0);
             
 
             df.endl();
@@ -495,7 +495,7 @@ namespace ealib {
             df.write(best_ind);
             df.write(variance(workload));
             df.write(shannon_sum);
-            df.write(shannon_sum / tps.size());
+            df.write(tps.size() > 0 ? shannon_sum / tps.size() : 0.0);
             
             
             df.endl();
@@ -706,8 +706,7 @@ namespace ealib {
                 
                 
                 // ok we need to iterate through size...
-                // fixed size 100 genome...
-                for (int z =0; z < 100; z++) {
+                for (int z =0; z < (int)control_ea->population()[0]->genome().size(); z++) {
                     for (int q = 0; q < control_ea->isa().size(); q++) {
                         typename EA::individual_ptr_type knockout_loc = ea.make_individual(*best_founder.traits().founder());
                         put<IND_REP_THRESHOLD>(get<IND_REP_THRESHOLD>(ea,0), *knockout_loc);

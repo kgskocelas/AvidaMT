@@ -194,13 +194,14 @@ struct ts_replication_propagule_hetero : end_of_update_event<EA> {
                 // i == parent individual;
                 typename EA::population_type parent_pop, offspring_pop;
                 parent_pop.push_back(*k.base());
+                offspring_pop.push_back(p);
                 offspring.insert(offspring.end(),p);
                 inherits(parent_pop, offspring_pop, mea);
 
             }
 
         }
-        
+
         get<NUM_GROUP_REPLICATIONS>(mea,0) += offspring.size();
         
         // select surviving parent groups
@@ -303,7 +304,7 @@ struct ts_replication_propagule : end_of_update_event<EA> {
 
                         for (int k=1; k<get<NUM_PROPAGULE_GERM>(mea); ++k) {
 
-                            typename EA::subpopulation_type::individual_ptr_type o(q);
+                            typename EA::subpopulation_type::individual_ptr_type o = p->make_individual(q->genome());
                         
                             bool not_placed = true;
                             int place = -1;
@@ -355,7 +356,7 @@ struct ts_replication_propagule : end_of_update_event<EA> {
                             
                             
                             
-                                p->insert_at(p->end(),q, p->env().location(place).position());
+                                p->insert_at(p->end(),o, p->env().location(place).position());
                                 used_pos.push_back(place);
                             used_pos_with_avail_neighbors.push_back(place);
                             not_placed = false;
@@ -372,13 +373,14 @@ struct ts_replication_propagule : end_of_update_event<EA> {
                 // i == parent individual;
                 typename EA::population_type parent_pop, offspring_pop;
                 parent_pop.push_back(*k.base());
+                offspring_pop.push_back(p);
                 offspring.insert(offspring.end(),p);
                 inherits(parent_pop, offspring_pop, mea);
-                
+
             }
-            
+
         }
-        
+
         get<NUM_GROUP_REPLICATIONS>(mea,0) += offspring.size();
         
         // select surviving parent groups

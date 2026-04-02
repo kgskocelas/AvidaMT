@@ -152,18 +152,17 @@ namespace ealib {
                 
                 
                 // ok we need to iterate through size...
-                // fixed size 100 genome...
-                for (int z =0; z < 100; z++) {
+                for (int z =0; z < (int)control_ea->population()[0]->genome().size(); z++) {
                     for (int q = 0; q < control_ea->isa().size(); q++) {
                         typename EA::individual_ptr_type knockout_loc = ea.make_individual(*i->traits().founder());
                         put<IND_REP_THRESHOLD>(get<IND_REP_THRESHOLD>(ea,0), *knockout_loc);
 
-                        
+
                         //typename EA::subpopulation_type::genome_type r2(knockout_loc->population()[0]->genome());
                         //r);
                         knockout_loc->population()[0]->genome()[z] = q;
                         //r2[z] = q;
-                    
+
                         //(*(knockout_loc->population().begin()))->genome()[z] = q;
 
                     
@@ -346,18 +345,17 @@ namespace ealib {
                 
                 
                 // ok we need to iterate through size...
-                // fixed size 100 genome...
-                for (int z =0; z < 100; z++) {
+                for (int z =0; z < (int)control_ea->population()[0]->genome().size(); z++) {
                     for (int q = 0; q < control_ea->isa().size(); q++) {
                         typename EA::individual_ptr_type knockout_loc = ea.make_individual(*i->traits().founder());
                         put<IND_REP_THRESHOLD>(get<IND_REP_THRESHOLD>(ea,0), *knockout_loc);
-                        
-                        
+
+
                         //typename EA::subpopulation_type::genome_type r2(knockout_loc->population()[0]->genome());
                         //r);
                         knockout_loc->population()[0]->genome()[z] = q;
                         //r2[z] = q;
-                        
+
                         //(*(knockout_loc->population().begin()))->genome()[z] = q;
                         
                         
@@ -563,17 +561,16 @@ namespace ealib {
             
             
             // ok we need to iterate through size...
-            // fixed size 100 genome...
-            for (int z =0; z < 100; z++) {
+            for (int z =0; z < (int)control_ea->population()[0]->genome().size(); z++) {
                 for (int q = 0; q < control_ea->isa().size(); q++) {
                     typename EA::individual_ptr_type knockout_loc = ea.make_individual(*i->traits().founder());
                     put<IND_REP_THRESHOLD>(get<IND_REP_THRESHOLD>(ea,0), *knockout_loc);
                     put<COST_START_UPDATE>(get<COST_START_UPDATE>(ea,0), *knockout_loc);
-                    
-                    
+
+
                     knockout_loc->population()[0]->genome()[z] = q;
-                    
-                    
+
+
                     int cur_update = 0;
                     int update_max = 10000;
                     // and run till the group amasses the right amount of resources
@@ -638,8 +635,8 @@ namespace ealib {
             .write(higher_rep_time)
             .write(higher_cell_workload)
             .write(no_workload)
-            .write(uni_fit/viable)
-            .write(uni_workload/viable);
+            .write(viable > 0 ? uni_fit/viable : 0.0)
+            .write(viable > 0 ? uni_workload/viable : 0.0);
                 df2.write(get<TASK_NOT>(*control_ea, 0.0))
                 .write(get<TASK_NAND>(*control_ea, 0.0))
                 .write(get<TASK_AND>(*control_ea, 0.0))
@@ -650,15 +647,15 @@ namespace ealib {
                 .write(get<TASK_XOR>(*control_ea, 0.0))
                 .write(get<TASK_EQUALS>(*control_ea, 0.0));
 
-                df2.write(total_not / viable)
-                .write(total_nand / viable)
-                .write(total_and / viable)
-                .write(total_ornot / viable)
-                .write(total_or / viable)
-                .write(total_andnot / viable)
-                .write(total_nor / viable)
-                .write(total_xor / viable)
-                .write(total_equals / viable);
+                df2.write(viable > 0 ? total_not / viable : 0.0)
+                .write(viable > 0 ? total_nand / viable : 0.0)
+                .write(viable > 0 ? total_and / viable : 0.0)
+                .write(viable > 0 ? total_ornot / viable : 0.0)
+                .write(viable > 0 ? total_or / viable : 0.0)
+                .write(viable > 0 ? total_andnot / viable : 0.0)
+                .write(viable > 0 ? total_nor / viable : 0.0)
+                .write(viable > 0 ? total_xor / viable : 0.0)
+                .write(viable > 0 ? total_equals / viable : 0.0);
                            df2.endl();
                 
             }
@@ -736,17 +733,16 @@ namespace ealib {
             
             
             // ok we need to iterate through size...
-            // fixed size 100 genome...
-            for (int z =0; z < 100; z++) {
+            for (int z =0; z < (int)control_ea->population()[0]->genome().size(); z++) {
                 for (int q = 0; q < control_ea->isa().size(); q++) {
                     typename EA::individual_ptr_type knockout_loc = ea.make_individual(*i->traits().founder());
                     put<IND_REP_THRESHOLD>(get<IND_REP_THRESHOLD>(ea,0), *knockout_loc);
                     put<COST_START_UPDATE>(get<COST_START_UPDATE>(ea,0), *knockout_loc);
-                    
-                    
+
+
                     knockout_loc->population()[0]->genome()[z] = q;
-                    
-                    
+
+
                     int cur_update = 0;
                     int update_max = 10000;
                     // and run till the group amasses the right amount of resources

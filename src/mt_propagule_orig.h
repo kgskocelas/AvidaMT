@@ -37,7 +37,7 @@ LIBEA_MD_DECL(COST_START_UPDATE, "ea.mt.cost_start_update", int);
 LIBEA_MD_DECL(COST_RAMP, "ea.mt.cost_ramp", int);
 LIBEA_MD_DECL(LAST_REPLICATION_STATE, "ea.mt.last_rep_state", int); // 0 uni, 1 mc, -1 not set
 LIBEA_MD_DECL(REPLICATION_STATE_INDEX, "ea.mt.rep_state_index", int); // increments based on number of flips
-LIBEA_MD_DECL(GENERATION, "ea.mt.rep_state_index", int); //
+LIBEA_MD_DECL(GENERATION, "ea.mt.generation", int); //
 LIBEA_MD_DECL(TISSUE_ACCRETION_MULT, "ea.mt.tissue_accretion_mult", int); //
 LIBEA_MD_DECL(TISSUE_ACCRETION_ADD, "ea.mt.tissue_accretion_add", int); //
 
@@ -215,7 +215,6 @@ DIGEVO_INSTRUCTION_DECL(h_divide_local) {
         
         int start_update = get<COST_START_UPDATE>(ea);
         int birth_update = get<IND_BIRTH_UPDATE>(ea);
-        int current_update = ea.current_update();
         if ((ea.current_update() + birth_update) < start_update ) {
             indrep = 0;
         } 
@@ -934,9 +933,9 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
                 .write(std::accumulate(pop_num.begin(), pop_num.end(), 0.0)/pop_num.size())
                 .write(std::accumulate(germ_percent.begin(), germ_percent.end(), 0.0)/germ_percent.size())
                 .write(std::accumulate(germ_workload.begin(), germ_workload.end(), 0.0)/germ_workload.size())
-                .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload.size())
+                .write(std::accumulate(germ_workload_var.begin(), germ_workload_var.end(), 0.0)/germ_workload_var.size())
                 .write(std::accumulate(soma_workload.begin(), soma_workload.end(), 0.0)/soma_workload.size())
-                .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload.size());
+                .write(std::accumulate(soma_workload_var.begin(), soma_workload_var.end(), 0.0)/soma_workload_var.size());
             } else {
                 _df.write(0)
                 .write(0)

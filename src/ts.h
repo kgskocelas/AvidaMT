@@ -109,7 +109,9 @@ struct task_switch_tracking : end_of_update_event<EA> {
                     }
                 }
             }
-            ts /= org;
+            if (org > 0) {
+                ts /= org;
+            }
             _df.write(ea.current_update())
             .write(sub_pop_size)
             .write(org)
