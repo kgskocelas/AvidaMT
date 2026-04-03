@@ -797,7 +797,7 @@ namespace ealib {
             
             //! Track how many task-switches are being performed!
             virtual void operator()(EA& ea) {
-                if ((ea.current_update() % 100) == 0) {
+                if ((ea.current_update() % get<RECORDING_PERIOD>(ea)) == 0) {
                     int mark_1 = 0;
                     int mark_2 = 0;
                     int unmarked = 0;

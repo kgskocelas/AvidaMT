@@ -92,7 +92,7 @@ struct task_switch_tracking : end_of_update_event<EA> {
     
     //! Track how many task-switches are being performed!
     virtual void operator()(EA& ea) {
-        if ((ea.current_update() % 100) == 0) {
+        if ((ea.current_update() % get<RECORDING_PERIOD>(ea)) == 0) {
             double ts = 0;
             double org = 0;
             

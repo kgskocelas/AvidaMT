@@ -663,7 +663,7 @@ namespace ealib {
                         metapop.update();
                         ++cur_update;
                         
-                        if ((cur_update % 100)==0) {
+                        if ((cur_update % get<RECORDING_PERIOD>(ea))==0) {
                             
                             float total_workload = 0;
                             float germ_workload = 0;
@@ -909,7 +909,7 @@ namespace ealib {
                         metapop.update();
                         ++cur_update;
                         
-                        if ((cur_update % 100)==0) {
+                        if ((cur_update % get<RECORDING_PERIOD>(ea))==0) {
                             
                             float total_workload = 0;
                             float germ_workload = 0;
@@ -1126,7 +1126,7 @@ namespace ealib {
                     metapop.update();
                     ++cur_update;
                     
-                    if ((cur_update % 100)==0) {
+                    if ((cur_update % get<RECORDING_PERIOD>(ea))==0) {
                         
                         float total_workload = 0;
                         float germ_workload = 0;
@@ -1333,7 +1333,7 @@ namespace ealib {
 //                        metapop.update();
 //                        ++cur_update;
 //
-//                        if ((cur_update % 100)==0) {
+//                        if ((cur_update % get<RECORDING_PERIOD>(ea))==0) {
 //
 //                            float total_workload = 0;
 //                            float germ_workload = 0;

@@ -442,7 +442,7 @@ struct mt_propagule : end_of_update_event<MEA> {
                 typedef typename MEA::subpopulation_type::population_type propagule_type;
                 
                 // track multicells (even those that don't replicate)
-                if ((mea.current_update() % 100) == 0) {
+                if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
                     
                     int alive_count = 0;
                     
@@ -549,7 +549,7 @@ struct mt_propagule : end_of_update_event<MEA> {
             }
         }
         
-        if ((mea.current_update() % 100) == 0) {
+        if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
             
             if (multicell_rep.size() > 0) {
                 _df.write(mea.current_update())
@@ -681,7 +681,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
                 typedef typename MEA::subpopulation_type::population_type propagule_type;
                 
                 // track multicells (even those that don't replicate)
-                if ((mea.current_update() % 100) == 0) {
+                if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
                     
                     int alive_count = 0;
                     
@@ -914,7 +914,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
             }
         }
         
-        if ((mea.current_update() % 100) == 0) {
+        if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
             _df.write(mea.current_update());
             
             if (multicell_rep.size() > 0) {
@@ -1050,7 +1050,7 @@ struct dol_tracking : end_of_update_event<MEA> {
     //! Track how many task-switches are being performed!
     virtual void operator()(MEA& ea) {
         
-        if ((ea.current_update() % 100) == 0) {
+        if ((ea.current_update() % get<RECORDING_PERIOD>(ea)) == 0) {
             _df.write(ea.current_update());
             double shannon_sum_all = 0;
             double shannon_norm_all = 0;

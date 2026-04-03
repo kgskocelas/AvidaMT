@@ -19,6 +19,7 @@
  */
 
 #include "ts.h"
+#include <ea/digital_evolution/utils/task_switching.h>
 #include "subpopulation_founder.h"
 
 #include <ea/line_of_descent.h>
@@ -79,15 +80,15 @@ struct ts_configuration : public abstract_configuration<EA> {
         task_ptr_type task_equals = make_task<tasks::task_equals,catalysts::additive<0> >("equals", ea);
         
         // initial amount (unit), inflow (unit), outflow (percentage), percent consumed, ea
-        resource_ptr_type resA = make_resource("resA", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resB = make_resource("resB", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resC = make_resource("resC", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resD = make_resource("resD", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resE = make_resource("resE", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resF = make_resource("resF", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resG = make_resource("resG", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resH = make_resource("resH", 100.0, 1.0, 0.01, 0.05, ea);
-        resource_ptr_type resI = make_resource("resI", 100.0, 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resA = make_resource("resA", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resB = make_resource("resB", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resC = make_resource("resC", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resD = make_resource("resD", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resE = make_resource("resE", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resF = make_resource("resF", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resG = make_resource("resG", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resH = make_resource("resH", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
+        resource_ptr_type resI = make_resource("resI", get<RES_INITIAL_AMOUNT>(ea), 1.0, 0.01, 0.05, ea);
         
         task_not->consumes(resA);
         task_nand->consumes(resB);

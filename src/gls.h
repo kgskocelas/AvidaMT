@@ -508,7 +508,7 @@ struct gls_replication : end_of_update_event<EA> {
         
         //        assert(ea.population().size() == 10);
         
-        if ((ea.current_update() % 100) == 0) {
+        if ((ea.current_update() % get<RECORDING_PERIOD>(ea)) == 0) {
             if (germ_num.size() > 0) {
                 _df.write(ea.current_update())
                 .write(std::accumulate(germ_num.begin(), germ_num.end(), 0.0)/germ_num.size())
@@ -746,7 +746,7 @@ struct gls_replication_ps : end_of_update_event<EA> {
         
         //        assert(ea.population().size() == 10);
         
-        if ((ea.current_update() % 100) == 0) {
+        if ((ea.current_update() % get<RECORDING_PERIOD>(ea)) == 0) {
             if (germ_num.size() > 0) {
                 _df.write(ea.current_update())
                 .write(std::accumulate(germ_num.begin(), germ_num.end(), 0.0)/germ_num.size())
