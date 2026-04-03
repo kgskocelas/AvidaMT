@@ -89,65 +89,31 @@ All four executables will be compiled into `build/`:
 
 ## Step 5 — Verify
 
-Data files are written to the **current working directory**. The commands below run each test inside its own subdirectory so the output files from different executables do not overwrite each other. Run all commands from inside `AvidaMT/`.
-
----
-
-### Test 1 — avida-logic9
+Run all commands from inside `AvidaMT/`. Each test runs in its own subdirectory so output files don't overwrite each other.
 
 ```bash
 mkdir -p verify/logic9
 (cd verify/logic9 && ../../build/avida-logic9 -c ../../etc/logic9.cfg --ea.run.updates=5 --ea.rng.seed=42)
+echo $?   # should print 0
 ```
-
-`avida-logic9` does not write data files. Confirm it ran correctly:
-
-- No crash or error message appears in the terminal.
-- The output includes the active configuration (key–value pairs) followed by per-update progress.
-- Check the exit code immediately after: `echo $?` should print `0`.
-
----
-
-### Test 2 — mt_lr_gls
 
 ```bash
 mkdir -p verify/mt_lr_gls
 (cd verify/mt_lr_gls && ../../build/mt_lr_gls -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
+echo $?   # should print 0; creates tasks.dat, mt_gls.dat, dol.dat
 ```
-
-Three data files are written to `verify/mt_lr_gls/`. Open each with any text editor or `cat`:
-
-**`tasks.dat`** — counts of each logic task performed across the entire population, recorded once every 100 updates. The recording also fires at update 0 (the initial state), so the file will contain a header line followed by exactly one data row whose first column is `0`.
-
-```
-update not nand and ornot or andnot nor xor equals
-0 1000 0 0 0 0 0 0 0 0
-```
-
-The `not` count of `1000` reflects the 1000 founder organisms (one per multicell at initialization) each executing a NOT operation during update 0 from the ancestor genome. All other task counts are `0` because more complex tasks require evolution. The key checks are that the file exists, has two lines, the `update` column reads `0`, and `not` is a positive number.
-
-**`mt_gls.dat`** — multicell replication and germ/soma statistics, recorded every 100 updates (and at update 0). Columns include `update`, `mean_multicell_size`, `mean_pop_num`, `num_orgs`, and many others. Check:
-- One header line followed by one data row with `update = 0`.
-- `num_orgs` > 0 (population is alive and running).
-
-**`dol.dat`** — division-of-labor statistics, recorded every 100 updates (and at update 0). Columns: `update mean_shannon_sum mean_shannon_norm mean_active_pop mean_pop_count`. Check:
-- One header line followed by one data row with `update = 0`.
-- `mean_pop_count` > 0.
-
----
-
-### Test 3 — mt_lr_gls_dol_control
 
 ```bash
 mkdir -p verify/mt_lr_gls_dol_control
 (cd verify/mt_lr_gls_dol_control && ../../build/mt_lr_gls_dol_control -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
+echo $?   # should print 0; creates tasks.dat, mt_gls.dat
 ```
 
-`mt_lr_gls_dol_control` does not write `dol.dat`. Check:
-
-**`tasks.dat`** — same checks as Test 2 (header + one row with `update = 0`, `not` > 0).
-
-**`mt_gls.dat`** — same checks as Test 2 (`update = 0`, `num_orgs > 0``).
+```bash
+mkdir -p verify/ts_mt
+(cd verify/ts_mt && ../../build/ts_mt -c ../../etc/ts_mt.cfg --ea.run.updates=100 --ea.rng.seed=42)
+echo $?   # should print 0; creates tasks.dat, ts.dat, mt.dat
+```
 
 ---
 
@@ -249,38 +215,7 @@ The build will take a few minutes. When it finishes, the four executables are in
 
 ### Step 6 — Verify
 
-Data files are written to the current working directory. Run each test from its own subdirectory (from inside `$HOME/AvidaMT/`):
-
-**avida-logic9** — no data files; verify via exit code and stdout only.
-
-```bash
-mkdir -p verify/logic9
-(cd verify/logic9 && ../../build/avida-logic9 -c ../../etc/logic9.cfg --ea.run.updates=5 --ea.rng.seed=42)
-echo $?   # should print 0
-```
-
-**mt_lr_gls** — writes `tasks.dat`, `mt_gls.dat`, and `dol.dat` to the output directory.
-
-```bash
-mkdir -p verify/mt_lr_gls
-(cd verify/mt_lr_gls && ../../build/mt_lr_gls -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
-```
-
-**mt_lr_gls_dol_control** — writes `tasks.dat` and `mt_gls.dat` (no `dol.dat`).
-
-```bash
-mkdir -p verify/mt_lr_gls_dol_control
-(cd verify/mt_lr_gls_dol_control && ../../build/mt_lr_gls_dol_control -c ../../etc/major_transitions.cfg --ea.run.updates=100 --ea.rng.seed=42)
-```
-
-**ts_mt** — use `etc/ts_mt.cfg` (not `major_transitions.cfg`); writes `tasks.dat`, `ts.dat`, and `mt.dat`.
-
-```bash
-mkdir -p verify/ts_mt
-(cd verify/ts_mt && ../../build/ts_mt -c ../../etc/ts_mt.cfg --ea.run.updates=100 --ea.rng.seed=42)
-```
-
-For each data file: open it with `cat` or a text editor and confirm a header line is present followed by one data row whose `update` column reads `0`. See the macOS **Step 5 — Verify** section above for the full list of per-file checks.
+Run from inside `$HOME/Avida/AvidaMT/`. Use the [same verification steps as local installation](#step-5--verify).
 
 ### Step 7 — Save your module setup
 
@@ -312,14 +247,6 @@ module restore avidamt
 cd $HOME/AvidaMT
 ./build/mt_lr_gls -c etc/major_transitions.cfg --ea.rng.seed=$SLURM_ARRAY_TASK_ID
 ```
-
-Submit with:
-```bash
-sbatch --array=1-30 run_mt.sb
-```
-
-run_mt.sb is your sbatch file (SLURM job script).
-The `--array` flag runs 30 independent replicates, each with a different random seed derived from `$SLURM_ARRAY_TASK_ID`.
 
 ### Troubleshooting (HPCC)
 
