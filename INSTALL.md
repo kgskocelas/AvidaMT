@@ -146,11 +146,6 @@ These instructions are for the Michigan State University High Performance Comput
 
 Log in to the HPCC and request a development node so that compilation does not run on the shared login node:
 
-```bash
-ssh <netid>@hpcc.msu.edu
-dev --time=01:00:00
-```
-
 ### Step 2 — Check available Boost modules
 
 ```bash
