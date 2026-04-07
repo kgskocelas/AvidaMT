@@ -78,16 +78,20 @@ struct configurable_indel {
             && repr.size() < static_cast<std::size_t>(get<REPRESENTATION_MAX_SIZE>(ea))
             && ea.rng().p(_ins_p)) {
             std::size_t csize = ea.rng()(get<MUTATION_INDEL_MIN_SIZE>(ea), get<MUTATION_INDEL_MAX_SIZE>(ea) + 1);
-            typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
-            typename EA::genome_type chunk(src, src + csize);
-            repr.insert(ea.rng().choice(repr.begin(), repr.end()), chunk.begin(), chunk.end());
+            if (csize < repr.size()) {
+                typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
+                typename EA::genome_type chunk(src, src + csize);
+                repr.insert(ea.rng().choice(repr.begin(), repr.end()), chunk.begin(), chunk.end());
+            }
         }
         if (_del_p > 0
             && repr.size() > static_cast<std::size_t>(get<REPRESENTATION_MIN_SIZE>(ea))
             && ea.rng().p(_del_p)) {
             std::size_t csize = ea.rng()(get<MUTATION_INDEL_MIN_SIZE>(ea), get<MUTATION_INDEL_MAX_SIZE>(ea) + 1);
-            typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
-            repr.erase(src, src + csize);
+            if (csize < repr.size()) {
+                typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
+                repr.erase(src, src + csize);
+            }
         }
     }
 
