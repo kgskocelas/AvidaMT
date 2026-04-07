@@ -197,7 +197,7 @@ namespace ealib {
             metapop.initialize(md);
             put<METAPOPULATION_SIZE>(100, metapop);
             put<RUN_UPDATES>(10000, metapop);
-            int new_seed = ea.rng().uniform_integer();
+            int new_seed = ea.rng().seed();
             put<RNG_SEED>(new_seed, metapop);
             metapop.reset_rng(new_seed);
             
@@ -219,7 +219,7 @@ namespace ealib {
                 //put<GERM_MUTATION_PER_SITE_P>(0, *control_mc);
             }
             
-            new_seed = ea.rng().uniform_integer();
+            new_seed = ea.rng().seed();
             put<RNG_SEED>(new_seed, *control_mc);
             control_mc->reset_rng(new_seed);
                         
@@ -379,7 +379,7 @@ namespace ealib {
                 put<TASK_MUTATION_PER_SITE_P>(0, *knockout_loc);
                 put<MUTATION_PER_SITE_P>(0, *knockout_loc);
                 put<GERM_MUTATION_PER_SITE_P>(0, *knockout_loc);
-                int new_seed = ea.rng().uniform_integer();
+                int new_seed = ea.rng().seed();
                 put<RNG_SEED>(new_seed, *knockout_loc);
                 knockout_loc->reset_rng(new_seed);
                 
@@ -433,11 +433,11 @@ namespace ealib {
                         metapop.initialize(md);
                         put<METAPOPULATION_SIZE>(32, metapop);
                         put<RUN_UPDATES>(10000, metapop);
-                        new_seed = ea.rng().uniform_integer();
+                        new_seed = ea.rng().seed();
                         put<RNG_SEED>(new_seed, metapop);
                         metapop.reset_rng(new_seed);
                         
-                        new_seed = ea.rng().uniform_integer();
+                        new_seed = ea.rng().seed();
                         put<RNG_SEED>(new_seed, *knockout_loc2);
                         knockout_loc2->reset_rng(new_seed);
                         
@@ -630,7 +630,7 @@ namespace ealib {
                     metapop.initialize(ea.md());
                     put<TISSUE_ACCRETION_MULT>(start_mult, metapop);
                     
-                    int new_seed = ea.rng().uniform_integer();
+                    int new_seed = ea.rng().seed();
                     put<RNG_SEED>(new_seed, metapop);
                     metapop.reset_rng(new_seed);
                     
@@ -640,7 +640,7 @@ namespace ealib {
                         typename EA::individual_ptr_type control_mc = metapop.make_individual(*i->traits().founder());
                         control_mc->initialize(metapop.md());
                         put<TISSUE_ACCRETION_MULT>(start_mult, *control_mc);
-                        control_mc->reset_rng(metapop.rng().uniform_integer());
+                        control_mc->reset_rng(metapop.rng().seed());
                         init_mc.insert(init_mc.end(),metapop.make_individual(*control_mc));
                         if (j ==0) {
                             start_gen = get<IND_GENERATION>(*control_mc);
@@ -876,7 +876,7 @@ namespace ealib {
                     metapop.initialize(ea.md());
                     put<TISSUE_ACCRETION_ADD>(add_ent, metapop);
                     
-                    int new_seed = ea.rng().uniform_integer();
+                    int new_seed = ea.rng().seed();
                     put<RNG_SEED>(new_seed, metapop);
                     metapop.reset_rng(new_seed);
                     
@@ -886,7 +886,7 @@ namespace ealib {
                         typename EA::individual_ptr_type control_mc = metapop.make_individual(*i->traits().founder());
                         control_mc->initialize(metapop.md());
                         put<TISSUE_ACCRETION_ADD>(start_mult, *control_mc);
-                        control_mc->reset_rng(metapop.rng().uniform_integer());
+                        control_mc->reset_rng(metapop.rng().seed());
                         init_mc.insert(init_mc.end(),metapop.make_individual(*control_mc));
                         if (j ==0) {
                             start_gen = get<IND_GENERATION>(*control_mc);
@@ -1093,7 +1093,7 @@ namespace ealib {
                 metapop.initialize(ea.md());
                 put<TISSUE_ACCRETION_ADD>(add_ent, metapop);
                 
-                int new_seed = ea.rng().uniform_integer();
+                int new_seed = ea.rng().seed();
                 put<RNG_SEED>(new_seed, metapop);
                 metapop.reset_rng(new_seed);
                 
@@ -1103,7 +1103,7 @@ namespace ealib {
                     typename EA::individual_ptr_type control_mc = metapop.make_individual(*i->traits().founder());
                     control_mc->initialize(metapop.md());
                     put<TISSUE_ACCRETION_ADD>(start_mult, *control_mc);
-                    control_mc->reset_rng(metapop.rng().uniform_integer());
+                    control_mc->reset_rng(metapop.rng().seed());
                     init_mc.insert(init_mc.end(),metapop.make_individual(*control_mc));
                     if (j ==0) {
                         start_gen = get<IND_GENERATION>(*control_mc);
@@ -1300,7 +1300,7 @@ namespace ealib {
 //                    metapop.initialize(ea.md());
 //                    put<GROUP_REP_THRESHOLD>(mc_res, metapop);
 //
-//                    int new_seed = ea.rng().uniform_integer();
+//                    int new_seed = ea.rng().seed();
 //                    put<RNG_SEED>(new_seed, metapop);
 //                    metapop.reset_rng(new_seed);
 //
@@ -1310,7 +1310,7 @@ namespace ealib {
 //                        typename EA::individual_ptr_type control_mc = metapop.make_individual(*i->traits().founder());
 //                        control_mc->initialize(metapop.md());
 //                        put<GROUP_REP_THRESHOLD>(mc_res, *control_mc);
-//                        control_mc->reset_rng(metapop.rng().uniform_integer());
+//                        control_mc->reset_rng(metapop.rng().seed());
 //                        init_mc.insert(init_mc.end(),metapop.make_individual(*control_mc));
 //                        if (j ==0) {
 //                            start_gen = get<IND_GENERATION>(*control_mc);
@@ -1488,7 +1488,7 @@ LIBEA_ANALYSIS_TOOL(lod_dol) {
 
         typename EA::individual_ptr_type control_ea = ea.make_individual(*i->traits().founder());
         control_ea->initialize(ea.md());
-        control_ea->reset_rng(ea.rng().uniform_integer());
+        control_ea->reset_rng(ea.rng().seed());
 
         // run until X replication events have 'happened'. Really, but happened, here we just add the resources back in.
         int cur_update = 0;
@@ -1614,7 +1614,7 @@ LIBEA_ANALYSIS_TOOL(lod_dol) {
 
             typename EA::individual_ptr_type control_ea = ea.make_individual(*i->traits().founder());
             control_ea->initialize(ea.md());
-            control_ea->reset_rng(ea.rng().uniform_integer());
+            control_ea->reset_rng(ea.rng().seed());
             //add_event<task_profile_tracking>(*control_ea);
             //add_event<task_profile_birth_event>(*control_ea);
 

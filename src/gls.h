@@ -555,6 +555,9 @@ struct gls_replication : end_of_update_event<EA> {
 
 
 
+#if 0
+// Disabled because this `gls_replication_ps` variant appears to contain
+// potential bugs and is not currently used by active executables.
 //! Performs group replication using germ lines.
 template <typename EA>
 struct gls_replication_ps : end_of_update_event<EA> {
@@ -794,6 +797,7 @@ struct gls_replication_ps : end_of_update_event<EA> {
     
     
 };
+#endif
 
 
 

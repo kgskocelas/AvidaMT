@@ -728,7 +728,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
                     // get a new subpopulation:
                     typename MEA::individual_ptr_type p = mea.make_individual();
                     p->initialize(mea.md());
-                    p->reset_rng(mea.rng().uniform_integer());
+                    p->reset_rng(mea.rng().seed());
                     
 
                     int total_workload = 0;
