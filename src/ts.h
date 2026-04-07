@@ -41,6 +41,8 @@ LIBEA_MD_DECL(LAST_TASK, "ea.ts.last_task", std::string);
 LIBEA_MD_DECL(NUM_SWITCHES, "ea.ts.num_switches", int);
 
 LIBEA_MD_DECL(GERM_MUTATION_PER_SITE_P, "ea.ts.germ_mutation_per_site_p", double);
+LIBEA_MD_DECL(GERM_INSERTION_MUT_PER_SITE_P, "ea.ts.germ_insertion_mut_per_site_p", double);
+LIBEA_MD_DECL(GERM_DELETION_MUT_PER_SITE_P, "ea.ts.germ_deletion_mut_per_site_p", double);
 
 
 

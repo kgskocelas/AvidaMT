@@ -424,6 +424,7 @@ struct mt_propagule : end_of_update_event<MEA> {
         
         
         configurable_per_site m(get<GERM_MUTATION_PER_SITE_P>(mea));
+        configurable_indel germ_im(get<GERM_INSERTION_MUT_PER_SITE_P>(mea, 0.0), get<GERM_DELETION_MUT_PER_SITE_P>(mea, 0.0));
         accumulator_set<double, stats<tag::mean> > gen;
         
         
@@ -476,9 +477,13 @@ struct mt_propagule : end_of_update_event<MEA> {
                             typename MEA::subpopulation_type::individual_ptr_type q = p->make_individual(r);
                             
                             inherits_from(**j, *q, *p);
-                            mutate(*q,m,*p);
-                            
-                            
+                            if (get<GERM_MUTATION_PER_SITE_P>(mea) > 0) {
+                                mutate(*q,m,*p);
+                            }
+                            if (germ_im._ins_p > 0 || germ_im._del_p > 0) {
+                                mutate(*q,germ_im,*p);
+                            }
+
                             p->insert(p->end(), q);
                             
                             ++num_moved;
@@ -644,6 +649,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
         int track_details = get<TRACK_DETAILS>(mea,0);
         
         configurable_per_site m(get<GERM_MUTATION_PER_SITE_P>(mea));
+        configurable_indel germ_im(get<GERM_INSERTION_MUT_PER_SITE_P>(mea, 0.0), get<GERM_DELETION_MUT_PER_SITE_P>(mea, 0.0));
 
         int count_uni = 0;
         int count_multi = 0;
@@ -782,8 +788,13 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
 
 
                                 inherits_from(**j, *q, *p);
-                                mutate(*q,m,*p);
-                                
+                                if (get<GERM_MUTATION_PER_SITE_P>(mea) > 0) {
+                                    mutate(*q,m,*p);
+                                }
+                                if (germ_im._ins_p > 0 || germ_im._del_p > 0) {
+                                    mutate(*q,germ_im,*p);
+                                }
+
                                 if (track_details) {
                                     // offspring genome
                                     _df2.write("\"");
