@@ -62,6 +62,8 @@ LIBEA_MD_DECL(EQUALS_MUTATION_MULT, "ea.gls.equals_mutation_mult", double);
 LIBEA_MD_DECL(NUM_PROPAGULE_CELL, "ea.gls.num_propagule_cell", int);
 LIBEA_MD_DECL(CURR_SOMA_SIZE, "ea.gls.curr_soma_size", int);
 LIBEA_MD_DECL(TRACK_DETAILS, "ea.mt.track_details", int);
+LIBEA_MD_DECL(GERM_INSERTION_MUT_PER_SITE_P, "ea.ts.germ_insertion_mut_per_site_p", double);
+LIBEA_MD_DECL(GERM_DELETION_MUT_PER_SITE_P, "ea.ts.germ_deletion_mut_per_site_p", double);
 
 
 /*! Insertion/deletion mutation at a configurable rate.
