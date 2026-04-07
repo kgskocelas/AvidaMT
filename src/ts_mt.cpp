@@ -203,6 +203,10 @@ public:
         add_option<MUTATION_PER_SITE_P>(this);
         add_option<MUTATION_INSERTION_P>(this);
         add_option<MUTATION_DELETION_P>(this);
+        add_option<REPRESENTATION_MIN_SIZE>(this);
+        add_option<REPRESENTATION_MAX_SIZE>(this);
+        add_option<MUTATION_INDEL_MIN_SIZE>(this);
+        add_option<MUTATION_INDEL_MAX_SIZE>(this);
         add_option<MUTATION_UNIFORM_INT_MIN>(this);
         add_option<MUTATION_UNIFORM_INT_MAX>(this);
         add_option<RUN_UPDATES>(this);
