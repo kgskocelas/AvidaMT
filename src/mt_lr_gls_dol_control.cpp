@@ -185,7 +185,7 @@ typedef metapopulation
 < sea_type
 , quiet_nan
 , mutation::operators::no_mutation
-, quiet_nan
+, quiet_nan // DORMANT BUG: quiet_nan is a fitness function, not a recombination operator. This must be fixed before enabling recombination.
 , generational_models::isolated_subpopulations
 , ancestors::default_subpopulation
 , dont_stop
