@@ -45,6 +45,8 @@ LIBEA_MD_DECL(NUM_CELLS_ACCRETED, "ea.mt.num_cells_accreted", int); //
 LIBEA_MD_DECL(TIME_DELAY, "ea.mt.time_delay", int); //
 LIBEA_MD_DECL(ORGANISM_ID, "ea.mt.organism_id", int); // id used to track organisms
 LIBEA_MD_DECL(ORGANISM_PARENT_ID, "ea.mt.organism_parent_id", int); // id used to track an organisms parent
+LIBEA_MD_DECL(POP_REGULATION_MODE, "ea.mt.pop_regulation_mode", int); // 1=on, 0=off
+LIBEA_MD_DECL(TOTAL_NUM_CELLS_LIMIT, "ea.mt.total_num_cells_limit", int); // max total cells across all organisms
 
 
 
@@ -623,6 +625,9 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
         .add_field("mean_multi_index")
         .add_field("num_orgs")
         .add_field("mean_generation");
+        if (get<POP_REGULATION_MODE>(mea, 0) == 1) {
+            _df.add_field("orgs_culled_this_period");
+        }
         
         _df2.add_field("update")
         .add_field("propagule_genome")
@@ -676,32 +681,40 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
                 }
             }
                 
+            // for pop regulation: track alive cells per organism (populated inside RECORDING_PERIOD block below)
+            std::vector<int> cell_counts;
+            int total_cells = 0;
+            int orgs_culled_this_period = 0;
+
             for(typename MEA::iterator i=mea.begin(); i!=mea.end(); ++i) {
-                
+
                 // track time since group rep
                 get<MULTICELL_REP_TIME>(*i,0) +=1;
                 gen(get<IND_GENERATION>(*i));
 
-                
+
                 // figure out which individuals from the parent comprise the propagule:
                 typedef typename MEA::subpopulation_type::population_type propagule_type;
-                
+
                 // track multicells (even those that don't replicate)
                 if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
-                    
+
                     int alive_count = 0;
-                    
+
                     for(typename propagule_type::iterator j=i->population().begin(); j!=i->population().end(); ++j) {
                         if ((*j)->alive()) {
                             alive_count++;
                         }
-                        
+
                     }
-                    
+
+                    cell_counts.push_back(alive_count);
+                    total_cells += alive_count;
+
                     multicell_rep.push_back(get<MULTICELL_REP_TIME>(*i,0));
                     multicell_res.push_back(get<GROUP_RESOURCE_UNITS>(*i,0));
                     multicell_size.push_back(alive_count);
-                            
+
                     if (alive_count == 1) {
                         count_uni += 1;
                         uni_index += get<REPLICATION_STATE_INDEX>(*i,0);
@@ -910,21 +923,37 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
             }
             
             
+            // population regulation: cull organisms by uniform random selection until under cell limit
+            // runs before offspring selection so cell_counts (built in the loop above) is still in sync
+            if (get<POP_REGULATION_MODE>(mea, 0) == 1 &&
+                (mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
+                int limit = get<TOTAL_NUM_CELLS_LIMIT>(mea, 0);
+
+                while (total_cells > limit && !mea.population().empty()) {
+                    // pick a random organism uniformly and remove it along with all its cells
+                    int org_idx = mea.rng().uniform_integer(0, (int)mea.population().size());
+                    total_cells -= cell_counts[org_idx];
+                    cell_counts.erase(cell_counts.begin() + org_idx);
+                    mea.population().erase(mea.population().begin() + org_idx);
+                    ++orgs_culled_this_period;
+                }
+            }
+
             // select surviving parent groups
             if (offspring.size() > 0) {
                 int n = get<METAPOPULATION_SIZE>(mea) - offspring.size();
-                
+
                 typename MEA::population_type survivors;
                 select_n<selection::random< > >(mea.population(), survivors, n, mea);
-                
+
                 // add the offspring to the list of survivors:
                 survivors.insert(survivors.end(), offspring.begin(), offspring.end());
-                
+
                 // and swap 'em in for the current population:
                 std::swap(mea.population(), survivors);
             }
         }
-        
+
         if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
             _df.write(mea.current_update());
             
@@ -995,6 +1024,9 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
             }
             _df.write(mea.size());
             _df.write(mean(gen));
+            if (get<POP_REGULATION_MODE>(mea, 0) == 1) {
+                _df.write(orgs_culled_this_period);
+            }
 
             _df.endl();
             num_rep = 0;
