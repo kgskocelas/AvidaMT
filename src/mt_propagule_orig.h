@@ -700,20 +700,29 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
                 // figure out which individuals from the parent comprise the propagule:
                 typedef typename MEA::subpopulation_type::population_type propagule_type;
 
-                // track multicells (even those that don't replicate)
-                if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
-
-                    int alive_count = 0;
-
+                // count alive cells every update (needed for culling when pop_regulation_mode=1)
+                int alive_count = 0;
+                if (get<POP_REGULATION_MODE>(mea, 0) == 1) {
                     for(typename propagule_type::iterator j=i->population().begin(); j!=i->population().end(); ++j) {
                         if ((*j)->alive()) {
                             alive_count++;
                         }
-
                     }
-
                     cell_counts.push_back(alive_count);
                     total_cells += alive_count;
+                }
+
+                // track multicells (even those that don't replicate)
+                if ((mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
+
+                    if (get<POP_REGULATION_MODE>(mea, 0) == 0) {
+                        // alive_count not yet computed; compute it now for recording only
+                        for(typename propagule_type::iterator j=i->population().begin(); j!=i->population().end(); ++j) {
+                            if ((*j)->alive()) {
+                                alive_count++;
+                            }
+                        }
+                    }
 
                     multicell_rep.push_back(get<MULTICELL_REP_TIME>(*i,0));
                     multicell_res.push_back(get<GROUP_RESOURCE_UNITS>(*i,0));
@@ -928,9 +937,8 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
             
             
             // population regulation: cull organisms by uniform random selection until under cell limit
-            // runs before offspring selection so cell_counts (built in the loop above) is still in sync
-            if (get<POP_REGULATION_MODE>(mea, 0) == 1 &&
-                (mea.current_update() % get<RECORDING_PERIOD>(mea)) == 0) {
+            // runs every update before offspring are added to the population
+            if (get<POP_REGULATION_MODE>(mea, 0) == 1) {
                 int limit = get<TOTAL_NUM_CELLS_LIMIT>(mea, 0);
 
                 while (total_cells > limit && !mea.population().empty()) {
