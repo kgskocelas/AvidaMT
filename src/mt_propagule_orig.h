@@ -627,6 +627,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
         .add_field("mean_generation");
         if (get<POP_REGULATION_MODE>(mea, 0) == 1) {
             _df.add_field("orgs_culled_this_period");
+            _df.add_field("cells_culled_this_period");
         }
         
         _df2.add_field("update")
@@ -658,10 +659,14 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
 
         int count_uni = 0;
         int count_multi = 0;
-        
+
         float uni_index = 0;
         float multi_index = 0;
         accumulator_set<double, stats<tag::mean> > gen;
+        // declared at function scope (not inside the if(ru) or if(POP_REGULATION_MODE) blocks)
+        // so they remain in scope for the separate if(RECORDING_PERIOD) data-write block below
+        int orgs_culled_this_period = 0;
+        int cells_culled_this_period = 0;
 
         
         // Replicate!
@@ -684,7 +689,6 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
             // for pop regulation: track alive cells per organism (populated inside RECORDING_PERIOD block below)
             std::vector<int> cell_counts;
             int total_cells = 0;
-            int orgs_culled_this_period = 0;
 
             for(typename MEA::iterator i=mea.begin(); i!=mea.end(); ++i) {
 
@@ -932,6 +936,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
                 while (total_cells > limit && !mea.population().empty()) {
                     // pick a random organism uniformly and remove it along with all its cells
                     int org_idx = mea.rng().uniform_integer(0, (int)mea.population().size());
+                    cells_culled_this_period += cell_counts[org_idx];
                     total_cells -= cell_counts[org_idx];
                     cell_counts.erase(cell_counts.begin() + org_idx);
                     mea.population().erase(mea.population().begin() + org_idx);
@@ -1026,6 +1031,7 @@ struct mt_gls_propagule : end_of_update_event<MEA> {
             _df.write(mean(gen));
             if (get<POP_REGULATION_MODE>(mea, 0) == 1) {
                 _df.write(orgs_culled_this_period);
+                _df.write(cells_culled_this_period);
             }
 
             _df.endl();
