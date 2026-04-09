@@ -255,6 +255,8 @@ public:
         add_option<RES_FRACTION_CONSUMED>(this);
         add_option<COST_RAMP>(this);
         add_option<COST_START_UPDATE>(this);
+        add_option<POP_REGULATION_MODE>(this);
+        add_option<TOTAL_NUM_CELLS_LIMIT>(this);
 
         add_option<ARCHIVE_INPUT>(this);
         add_option<ARCHIVE_OUTPUT>(this);
