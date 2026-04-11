@@ -47,6 +47,7 @@ LIBEA_MD_DECL(ORGANISM_ID, "ea.mt.organism_id", int); // id used to track organi
 LIBEA_MD_DECL(ORGANISM_PARENT_ID, "ea.mt.organism_parent_id", int); // id used to track an organisms parent
 LIBEA_MD_DECL(POP_REGULATION_MODE, "ea.mt.pop_regulation_mode", int); // 1=on, 0=off
 LIBEA_MD_DECL(TOTAL_NUM_CELLS_LIMIT, "ea.mt.total_num_cells_limit", int); // max total cells across all organisms
+LIBEA_MD_DECL(RECORD_LOD, "ea.mt.record_lod", int); // 1=record LOD file, 0=off
 
 
 
@@ -404,7 +405,7 @@ DIGEVO_INSTRUCTION_DECL(h_divide_multicell) {
 
 //! Performs multicell replication using germ lines. One cells is selected, mutated, and then used to create the appropriate number of cells. Thus, the starting multicell offspring is clonal.
 template <typename MEA>
-struct mt_propagule : end_of_update_event<MEA> {
+struct mt_propagule : now <MEA> {
     //! Constructor.
     mt_propagule(MEA& mea) : end_of_update_event<MEA>(mea), _df("mt.dat") {
         _df.add_field("update")
