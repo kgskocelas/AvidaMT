@@ -405,7 +405,7 @@ DIGEVO_INSTRUCTION_DECL(h_divide_multicell) {
 
 //! Performs multicell replication using germ lines. One cells is selected, mutated, and then used to create the appropriate number of cells. Thus, the starting multicell offspring is clonal.
 template <typename MEA>
-struct mt_propagule : now <MEA> {
+struct mt_propagule : end_of_update_event<MEA> {
     //! Constructor.
     mt_propagule(MEA& mea) : end_of_update_event<MEA>(mea), _df("mt.dat") {
         _df.add_field("update")
