@@ -234,7 +234,8 @@ public:
         add_option<RES_OUTFLOW_FRACTION>(this);
         add_option<RES_FRACTION_CONSUMED>(this);
         add_option<COST_START_UPDATE>(this);
-        
+        add_option<RECORD_LOD>(this);
+
         add_option<IND_REP_THRESHOLD>(this);
         add_option<COST_RAMP>(this);
         
@@ -268,7 +269,9 @@ public:
 
         add_event<task_performed_tracking>(ea);
         add_event<task_switch_tracking>(ea);
-        add_event<datafiles::mrca_lineage>(ea);
+        if (get<RECORD_LOD>(ea, 0)) {
+            add_event<datafiles::mrca_lineage>(ea);
+        }
         add_event<subpopulation_founder_event>(ea);
 
     };
