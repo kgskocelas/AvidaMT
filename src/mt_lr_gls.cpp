@@ -257,6 +257,7 @@ public:
         add_option<COST_START_UPDATE>(this);
         add_option<POP_REGULATION_MODE>(this);
         add_option<TOTAL_NUM_CELLS_LIMIT>(this);
+        add_option<RECORD_LOD>(this);
 
         add_option<ARCHIVE_INPUT>(this);
         add_option<ARCHIVE_OUTPUT>(this);
