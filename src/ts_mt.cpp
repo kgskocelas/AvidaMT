@@ -271,8 +271,8 @@ public:
         add_event<task_switch_tracking>(ea);
         if (get<RECORD_LOD>(ea, 0)) {
             add_event<datafiles::mrca_lineage>(ea);
+            add_event<subpopulation_founder_event>(ea);
         }
-        add_event<subpopulation_founder_event>(ea);
 
     };
 };
