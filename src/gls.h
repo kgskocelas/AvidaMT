@@ -93,6 +93,7 @@ struct configurable_indel {
             if (csize < repr.size()) {
                 typename EA::genome_type::iterator src = ea.rng().choice(repr.begin(), repr.begin() + (repr.size() - csize));
                 repr.erase(src, src + csize);
+                ind.hw().clamp_heads();
             }
         }
     }
