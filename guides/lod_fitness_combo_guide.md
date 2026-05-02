@@ -282,6 +282,47 @@ The `--analyze lod_fitness_combo` flag on the command line is what invokes this 
 
 ---
 
+## Verifying and Packaging Output
+
+After all four conditions finish on the HPCC, verify the output before downloading or archiving.
+
+### Step 1 — Verify with `4_verify_growth_assay.py`
+
+Copy the script to the experiment directory on the HPCC (or run it from wherever the `fitness_end_SEED/` directories live):
+
+```bash
+python3 4_verify_growth_assay.py /path/to/experiment/dir
+```
+
+Seeds and the log prefix are auto-detected. The script will:
+- Check that all four conditions were run on the same seed set
+- Report complete / incomplete / missing tallies per condition
+- List every problem found for each incomplete seed
+- Scan slurm log files for error keywords (time limit, OOM, crash, etc.)
+- Print a ready-to-paste `#SBATCH --array=` line for any seeds that need to be rerun
+
+Rerun any failed seeds, then re-verify until all four conditions are clean.
+
+### Step 2 — Tar all four conditions into one archive
+
+Edit `BASE_DIR` and `OUTPUT_NAME` at the top of `5_tar_growth_assay.sbatch`, then submit it from the experiment directory:
+
+```bash
+sbatch 5_tar_growth_assay.sbatch
+```
+
+This tars all four condition folders (`fitness_end_*/`, `fitness_end_no_mut_*/`, `fitness_trans_*/`, `fitness_trans_no_mut_*/`) into a single `{OUTPUT_NAME}.tar.gz` using pigz for parallel compression. Check the `tar_growth_assay_{jobID}.log` it generates — a successful run ends with a `Done at` line.
+
+### Step 3 — Move the archive to the home results folder
+
+Move the `.tar.gz` file to your designated results directory alongside other experiment archives:
+
+```bash
+mv {OUTPUT_NAME}.tar.gz ~/path/to/results/
+```
+
+---
+
 ## Extending 004e to Other Treatments
 
 ### Which executables support `lod_fitness_combo`

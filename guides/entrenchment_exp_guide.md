@@ -349,6 +349,44 @@ Tars `{PREFIX}-uni/` and `{PREFIX}-multi/` simultaneously using `pigz -p 4`. Out
 
 ---
 
+## Growth Assay (lod_fitness_combo)
+
+After the LOD reruns are complete and verified, run the growth assay analysis. Refer to `guides/lod_fitness_combo_guide.md` for full details on setup and what each condition does. The steps here cover verifying the output and packaging it for transfer.
+
+### Verifying and Packaging Output
+
+After all four conditions finish on the HPCC, verify the output before downloading or archiving.
+
+**Step 1 — Verify with `4_verify_growth_assay.py`**
+
+Run the script from the directory containing the `fitness_end_SEED/` etc. folders:
+
+```bash
+python3 4_verify_growth_assay.py /path/to/experiment/dir
+```
+
+Seeds and the log prefix are auto-detected. The script checks that all four conditions ran on the same seed set, reports complete / incomplete / missing tallies per condition, scans Slurm log files for errors, and prints a ready-to-paste `#SBATCH --array=` line for any seeds that need to be rerun. Rerun any failed seeds and re-verify until all four conditions are clean.
+
+**Step 2 — Tar all four conditions into one archive**
+
+Edit `BASE_DIR` and `OUTPUT_NAME` at the top of `5_tar_growth_assay.sbatch`, then submit it from the experiment directory:
+
+```bash
+sbatch 5_tar_growth_assay.sbatch
+```
+
+This tars all four condition folders (`fitness_end_*/`, `fitness_end_no_mut_*/`, `fitness_trans_*/`, `fitness_trans_no_mut_*/`) into a single `{OUTPUT_NAME}.tar.gz` using pigz for parallel compression. Check the `tar_growth_assay_{jobID}.log` it generates — a successful run ends with a `Done at` line.
+
+**Step 3 — Move the archive to the results folder**
+
+Move the `.tar.gz` file to `/mnt/research/devolab/entrenchment-revision-data/{experiment}/{condition}/` alongside the uni and multi tars:
+
+```bash
+mv {OUTPUT_NAME}.tar.gz /mnt/research/devolab/entrenchment-revision-data/{experiment}/{condition}/
+```
+
+---
+
 ## Cleanup
 
 Keeping things tidy matters because the HPCC has both storage and file count limits (`quota` to check).
