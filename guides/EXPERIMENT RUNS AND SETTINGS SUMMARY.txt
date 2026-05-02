@@ -1,0 +1,203 @@
+================================================================================
+EXPERIMENT RUNS AND SETTINGS SUMMARY
+Paper: Entrenchment of Multicellularity (Avida Digital Evolution Study)
+================================================================================
+
+SOFTWARE PLATFORM: Avida (digital evolution)
+
+================================================================================
+SHARED BASELINE PARAMETERS (apply to all evolution experiments unless noted)
+================================================================================
+
+  Ancestral organism:       Unicellular, 100-instruction genome
+  Ancestor behavior:        Performs NOT task once, rotates counterclockwise,
+                            attempts propagule production; loops until enough
+                            resources (~1800 updates for first generation)
+  Population size:          1,000 organisms (max)
+  Evolution duration:       1,000,000 updates
+  CPU cycles per update:    30 (average per cell)
+  Reproductive mutation:    0.01 per site (propagule production only, not
+                            tissue accretion)
+                            NOTE: The paper reports 0.0075, but the actual
+                            SLURM submission scripts override the config file
+                            value to 0.01 on the command line. The SLURM
+                            scripts are the ground truth for what was run.
+  Dirty work mutation:      Per-site probability defined by function mutagen
+                            level (FML) of the executed task (see table below)
+
+  Resource system:
+    - 1 resource pool per organism per function (9 pools total)
+    - Inflow rate: 1 unit per update per pool
+    - Outflow rate: 1% of available resources per update
+    - Max accumulation: 100 units per pool
+    - Resource uptake per task execution: 5% of available resource (baseline)
+
+  Logic functions and their Function Mutagen Levels (FML):
+    NOT       0.0       (non-mutagenic)
+    NAND      0.0       (non-mutagenic)
+    AND       0.00075
+    ORNOT     0.00150
+    OR        0.00225
+    ANDNOT    0.00300
+    NOR       0.00375
+    XOR       0.00450
+    EQUALS    0.00525
+
+  Multicellularity cost (baseline evolution): 0 updates (no extrinsic cost)
+
+
+================================================================================
+EXPERIMENT 1: "DIRTY WORK" (Main/Baseline Evolution Experiment)
+================================================================================
+
+  Purpose:        Evolve populations from a unicellular ancestor to observe the
+                  emergence of multicellularity, division of labor, and
+                  entrenchment.
+
+  Mutagenesis:    When a cell performs a mutagenic task, the mutations are
+                  applied to THAT CELL's genome (standard dirty work model).
+
+  Replicates:     1,000 independent evolutionary runs
+  Duration:       1,000,000 updates each
+  Resource uptake efficiency: 5%
+  Multicellularity cost:      0 updates (no extrinsic cost during evolution)
+
+  Key results:
+    - 65 out of 1,000 runs evolved multicellularity
+    - Of those 65, 48 exhibited reproductive division of labor
+    - 17 were undifferentiated multicells
+
+
+================================================================================
+EXPERIMENT 2: RESOURCE EFFICIENCY VARIATION
+================================================================================
+
+  Purpose:        Test how resource consumption efficiency affects the
+                  evolution of multicellularity.
+
+  Varied parameter: Resource uptake efficiency per task execution
+  Treatments:
+    - 5% efficiency: 1,000 replicates (same as Experiment 1)
+    - 6% efficiency:   500 replicates
+    - 7% efficiency:   500 replicates
+    - 8% efficiency:   500 replicates
+
+  All other parameters: Same as baseline
+
+  Key result: Higher efficiency -> higher percentage of runs evolving
+              multicellularity.
+
+
+================================================================================
+EXPERIMENT 3: MULTICELLULARITY COST VARIATION
+================================================================================
+
+  Purpose:        Confirm that the time-delay cost of multicellularity
+                  actually reduces the evolution of multicellularity.
+
+  Varied parameter: Extrinsic cost of multicellularity (time delay in updates
+                    for propagule production; organism is inert during delay)
+
+  Treatments (cost in updates):
+    0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512
+
+  Replicates:     1,000 per treatment
+  All other parameters: Same as baseline
+
+  Key result: Fewer replicates evolved multicellularity as the cost
+              increased.
+
+
+================================================================================
+EXPERIMENT 4: "DISTRIBUTED DIRT" (Division-of-Labor Control Experiment)
+================================================================================
+
+  Purpose:        Disincentivize reproductive division of labor by
+                  decoupling mutagenic damage from the cell performing the
+                  task.
+
+  Mutagenesis:    When a cell performs a mutagenic task, the performing cell
+                  gets the resource, but the mutagenic damage is applied to
+                  the cell in that organism with the LEAST prior mutagenic
+                  damage (not to the performing cell).
+
+  Replicates:     1,000 independent evolutionary runs
+  Duration:       1,000,000 updates each
+  Resource uptake efficiency: 5%
+  All other parameters: Same as baseline (cells can still communicate,
+                        perform tasks, tissue accrete, produce propagules,
+                        and become propagule-ineligible)
+
+  Key results:
+    - 47 out of 1,000 runs evolved multicellularity (not significantly
+      different from the dirty work experiment)
+    - Multicellular lineages did NOT become entrenched
+    - Mean entrenchment value was slightly negative (-17.7)
+
+
+================================================================================
+POST-EVOLUTION ANALYSES (Applied to experiments 1 and 4)
+================================================================================
+
+These are not separate evolution experiments, but downstream analytical
+procedures applied to the multicellular lineages that arose in Experiments
+1 and 4.
+
+----------------------------------------------------------------------
+A. ENTRENCHMENT MEASUREMENT (Stability Assay)
+----------------------------------------------------------------------
+
+  For each multicellular lineage, genotypes were isolated at two time points:
+    1. "Transition" - the first multicellular organism along the line of
+       descent of the dominant multicell
+    2. "Final" - the dominant multicellular organism at the end of the run
+
+  Procedure:
+    - Create a population of 1,000 copies of the focal genotype
+    - Apply an extrinsic multicellularity cost (time delay)
+    - Run for 100 generations
+    - Observe whether the population reverts to unicellularity
+      (mean organism size drops below 2 cells)
+
+  Cost values tested: 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048
+  Replicates per cost per time point: 3
+
+  Stability = cost at which probability of reversion = 0.5 (logistic fit)
+  Entrenchment = Stability(final) - Stability(transition)
+
+  Applied to:
+    - 65 lineages from Dirty Work experiment
+    - 47 lineages from Distributed Dirt experiment
+
+----------------------------------------------------------------------
+B. UNICELLULAR REVERTANT GENERATION AND FITNESS ASSAY
+----------------------------------------------------------------------
+
+  For each multicellular lineage at both time points (transition, final):
+
+  Step 1 - Generate revertants:
+    - Create ALL possible single-locus mutants of the multicellular genotype
+
+  Step 2 - Viability assay:
+    - Run each mutant genome for up to 10,000 updates (no dirty work mutations)
+    - Check if it can accumulate resources and execute reproduction instructions
+    - Classify viable mutants as multicellular or unicellular
+
+  Step 3 - Growth assay (for unicellular revertants):
+    - Place a single organism in an empty population (capacity: 62 organisms)
+    - Allow up to 50,000 updates to reach population size of 32
+    - Calculate Malthusian parameter: M = log(Nf/Ni) / T
+    - Repeat 100 times per genotype (different random seeds)
+
+  Step 4 - Data filtering (two-step pipeline):
+    - Filter 1: Remove replicates where multicellularity re-evolved
+      (total cells > total organisms at end of assay; ~42.5% removed)
+    - Filter 2: Remove replicates where the organism failed to reproduce
+      (population size < 2 at end of assay; ~19% of remaining removed)
+
+  Relative fitness = ratio of average Malthusian parameters
+                     (unicell revertant / multicell progenitor)
+
+  Applied to:
+    - 65 lineages from Dirty Work experiment
+    - 47 lineages from Distributed Dirt experiment
