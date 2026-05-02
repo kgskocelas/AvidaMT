@@ -311,7 +311,7 @@ Edit `BASE_DIR` and `OUTPUT_NAME` at the top of `5_tar_growth_assay.sbatch`, the
 sbatch 5_tar_growth_assay.sbatch
 ```
 
-This tars all four condition folders (`fitness_end_*/`, `fitness_end_no_mut_*/`, `fitness_trans_*/`, `fitness_trans_no_mut_*/`) into a single `{OUTPUT_NAME}.tar.gz` using pigz for parallel compression. Check the `tar_growth_assay_{jobID}.log` it generates — a successful run ends with a `Done at` line.
+Before compressing, the script deletes all `*.log` files and the AvidaMT executable from each seed's `config/` folder. It then tars all four condition folders (`fitness_end_*/`, `fitness_end_no_mut_*/`, `fitness_trans_*/`, `fitness_trans_no_mut_*/`) into a single `{OUTPUT_NAME}.tar.gz` using pigz for parallel compression. Check the `tar_growth_assay_{jobID}.log` it generates — a successful run ends with a `Done at` line.
 
 ### Step 3 — Move the archive to the home results folder
 
