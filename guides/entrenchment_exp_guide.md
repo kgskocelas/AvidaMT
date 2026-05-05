@@ -23,6 +23,12 @@ If you're running low on space in `/mnt/gs21/scratch/groups/devolab`, there are 
 
 Personal scratch and home directories can also be used.
 
+> ⚠️ **All new experiments (not yet started) must be run on `/mnt/ufs18/nodr/home/kgs/`, not scratch.** The scratch file quota is too low for full experiment runs. Use `nodr` for any experiment that hasn't started yet.
+
+> ⚠️ **Growth and stability assays must run on `/mnt/ufs18/nodr/home/kgs/`.** These assays generate an enormous number of files (millions of small `.dat` files across all seeds and conditions). The scratch directories and home directory have a 1M–1.0M file quota that these assays will blow through. The `nodr` filesystem has a 26.2M file quota, which is large enough to handle them.
+
+> ⚠️ **Watch the `nodr` space quota.** Run `quota` on the HPCC regularly while assays are running. The `nodr` filesystem has a 512G space limit and growth/stability assay output can fill it — if you go over quota, jobs will silently fail mid-run with no error in the log (output files will be incomplete or empty). If you see many seeds failing without any SLURM error patterns in the logs, check `quota` first.
+
 ---
 
 ## Key Directories
@@ -30,7 +36,8 @@ Personal scratch and home directories can also be used.
 | Path | What's there |
 |------|-------------|
 | `/mnt/research/devolab/mt/mt_clean` | Heather's original data, sbatch files, and cfg files. The README vaguely explains what each folder number contains experiment-wise. |
-| `/mnt/gs21/scratch/groups/devolab/Avida4` | Working scratch directory. New experiment directories go here. Also contains all Python analysis scripts. |
+| `/mnt/ufs18/nodr/home/kgs/` | Where new experiment directories go. Use this for any experiment not yet started. |
+| `/mnt/gs21/scratch/groups/devolab/Avida4` | Contains all Python analysis scripts and the experiment setup script. Previously used as the working directory for experiment runs — new experiments go on `nodr` instead (see above). |
 | `/mnt/research/devolab/Avida4` | AvidaMT and ealib-modern repos. |
 | `/mnt/research/devolab/Avida4/AvidaMT/build` | Compiled executables live here; **do not link to these directly in your sbatch files** |
 | `/mnt/research/devolab/entrenchment-revision-data` | Where tar files go when sending data to Peter — navigate into the correct experiment folder, then condition subfolder |
@@ -92,7 +99,7 @@ Open a recently used sbatch file to use as your reference. The setup script in S
 
 ### Step 5: Set up the experiment directory on the HPCC
 
-Navigate to `/mnt/gs21/scratch/groups/devolab/Avida4`. Run the setup script to create the standard two-phase directory structure:
+Navigate to `/mnt/ufs18/nodr/home/kgs/` (for any experiment not yet started — see HPCC Access note above). Run the setup script to create the standard two-phase directory structure:
 
 ```bash
 bash /mnt/gs21/scratch/groups/devolab/Avida4/analysis-scripts/0_new_experiment_setup.sh your-experiment-name
@@ -387,6 +394,69 @@ mv {OUTPUT_NAME}.tar.gz /mnt/research/devolab/entrenchment-revision-data/{experi
 
 ---
 
+## Stability Assay (lod_entrench_add)
+
+After the LOD reruns are complete and verified, run the stability assay analysis. This uses the `--analyze lod_entrench_add` mode of `mt_lr_gls`, which re-enters the saved run state from the checkpoint and LOD files — no `ramp.cfg` is needed.
+
+The assay runs each of 12 tissue accretion costs (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048) at two timepoints (transition and final), writing all costs' output into a single folder per seed per timepoint. The resulting structure matches Heather's `008b` data:
+
+```
+pop-regulation/
+├── final_entrench_1/        ← seed 1, final timepoint, all 12 costs
+├── final_entrench_2/
+├── trans_entrench_1/        ← seed 1, transition timepoint, all 12 costs
+├── trans_entrench_2/
+└── ...
+```
+
+### Step 1 — Generate the sbatch files
+
+From your local AvidaMT repo, run:
+
+```bash
+bash hpcc_scripts/6_generate_stability_assay_sbatchs.sh
+```
+
+This creates two files in `complete_entrenchment_scripts/`:
+
+- `trans_stability.sbatch` — timepoint 0 (transition)
+- `final_stability.sbatch` — timepoint 1 (final)
+
+Before uploading, open each sbatch and check that:
+
+- `--array=` is set to the seed range you want to run
+- `--time` and `--mem` are appropriate (start with Heather's `008b` sbatch as a reference)
+- `WORKDIR` points to your experiment directory on `nodr` (stability assays generate many small files — must run on `nodr`, not scratch)
+- `EXE` points to your copied executable
+- `LOD_DIR` points to your multi (LOD rerun) folder
+
+### Step 2 — Upload and submit
+
+Copy both sbatch files to your experiment directory on the HPCC, then submit:
+
+```bash
+sbatch trans_stability.sbatch
+sbatch final_stability.sbatch
+```
+
+Each array job creates one `{tp}_entrench_{seed}/` folder and runs all 12 costs sequentially into it. The costs run in order from 1 to 2048; the job is done when all 12 finish.
+
+> ⚠️ **Run on `nodr`.** Stability assays write an enormous number of small `.dat` files. The scratch filesystem file quotas are too low — use `/mnt/ufs18/nodr/home/kgs/` as your `WORKDIR`.
+
+### Step 3 — Verify output
+
+Run `7_verify_stability_assay.py` from the directory containing the `trans_entrench_N/` and `final_entrench_N/` folders:
+
+```bash
+python3 7_verify_stability_assay.py /path/to/experiment/dir
+```
+
+Seeds are auto-detected. The script checks both conditions (trans and final), confirms the expected output files are present and non-empty, scans Slurm log files for errors, and prints a ready-to-paste `#SBATCH --array=` line for any seeds that need to be rerun.
+
+Pass `--condition trans` or `--condition final` to check only one timepoint. Pass `--delete-failed` to remove incomplete seed directories so they can be cleanly rerun.
+
+---
+
 ## Cleanup
 
 Keeping things tidy matters because the HPCC has both storage and file count limits (`quota` to check).
@@ -429,7 +499,7 @@ Peter has all the R scripts. Coordinate with him on who will run what. Note that
 
 A few things that have worked well:
 
-- **Claude Code** is helpful for writing and debugging Slurm scripts. Tell it you're using Slurm on the MSU HPCC and ask it to check ICER's documentation. It tends to over-engineer things if you don't tell it to just debug, and it struggles with file paths (faster to fix those yourself). Claude Code is also available as a module on the HPCC: `module load Claude-Code/2.1.58`
+- **Claude Code** is helpful for writing and debugging Slurm scripts. Tell it you're using Slurm on the MSU HPCC and ask it to check ICER's documentation. It tends to over-engineer things if you don't tell it to just debug, and it struggles with file paths (faster to fix those yourself). 
 - **Pasting error logs and crash output into Claude** (mentioning MSU HPCC for context) can help diagnose issues.
 - **Claude is good at writing custom Python data scrapers** if you give it an example `.dat` file from one seed's run and ask it to write a script that scrapes matching data from all runs. You can screenshot the OnDemand file browser to give it the folder structure.
 - **Claude and ChatGPT both work well at quickly parsing human-readable resource usage logs** such as the resource_usage_summary.txt and the terminal readout from sacct `sacct -j [jobID] --format=JobID,JobName,State,ExitCode,Elapsed,MaxRSS,MaxVMSize,CPUTime`

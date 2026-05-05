@@ -39,6 +39,7 @@ import os
 import re
 import sys
 import argparse
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -133,7 +134,7 @@ SLURM_ERROR_PATTERNS = [
     (re.compile(r"std::bad_alloc",        re.I), "bad_alloc (out of memory)"),
 ]
 
-MAX_WORKERS = 32
+MAX_WORKERS = None
 
 # ── ANSI colours ──────────────────────────────────────────────────────────────
 
@@ -526,7 +527,7 @@ def _print_condition_results(
     else:
         array_str = ','.join(str(s) for s in needs_rerun)
         print(f"  {red(bold(f'{len(needs_rerun)} seed(s) need rerun:'))}")
-        print(f"  {bold(yellow(f'#SBATCH --array={array_str}'))}")
+        print(f"  {bold(yellow(f'sbatch --array={array_str}'))}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -553,11 +554,15 @@ def main():
     )
     parser.add_argument(
         "--workers", type=int, default=MAX_WORKERS,
-        help=f"Parallel worker threads (default: {MAX_WORKERS})",
+        help="Parallel worker threads (default: unlimited)",
     )
     parser.add_argument(
         "--no-logs", action="store_true",
         help="Skip slurm log file scan",
+    )
+    parser.add_argument(
+        "--delete-failed", action="store_true",
+        help="Delete directories for incomplete seeds after reporting (so they can be cleanly rerun)",
     )
 
     args = parser.parse_args()
@@ -582,7 +587,7 @@ def main():
     print(bold(f"Log prefix     : '{log_prefix}'  (e.g. {log_prefix}-f_*.log)")
           if log_prefix else bold("Log prefix     : (not detected — log scanning skipped)"))
     print(bold(f"Conditions     : {', '.join(c.name for c in target_conditions)}"))
-    print(bold(f"Workers        : {args.workers}"))
+    print(bold(f"Workers        : {args.workers if args.workers is not None else 'unlimited'}"))
 
     # ── Collect all results first ─────────────────────────────────────────────
     all_results:     dict[str, dict] = {}
@@ -646,6 +651,43 @@ def main():
             args.no_logs,
         )
 
+    # ── Remove failed seed directories ───────────────────────────────────────
+    if args.delete_failed:
+        _section("REMOVING FAILED SEED DIRECTORIES", width=64)
+        to_remove = [
+            base_dir / f"{cond.dir_prefix}{seed}"
+            for cond in target_conditions
+            for seed, r in all_results[cond.name].items()
+            if r["status"] == "incomplete"
+        ]
+        to_remove.sort()
+        if not to_remove:
+            print(f"  {green('Nothing to remove.')}")
+        else:
+            total_removed = 0
+            for seed_dir in to_remove:
+                try:
+                    shutil.rmtree(seed_dir)
+                    print(f"  {red('✗')} removed  {seed_dir.name}/")
+                    total_removed += 1
+                except OSError as exc:
+                    print(f"  {yellow('⚠')} could not remove {seed_dir.name}/: {exc}")
+            print()
+            print(f"  Removed {total_removed} director{'y' if total_removed == 1 else 'ies'}.")
+
+        # ── Write missing_seeds.txt ───────────────────────────────────────────
+        missing_seeds_path = base_dir / "missing_seeds.txt"
+        with open(missing_seeds_path, "w") as fh:
+            for cond in target_conditions:
+                rerun = all_needs_rerun[cond.name]
+                fh.write(f"# {cond.name}\n")
+                if rerun:
+                    fh.write(f"sbatch --array={','.join(str(s) for s in rerun)}\n")
+                else:
+                    fh.write("# (all complete)\n")
+                fh.write("\n")
+        print(f"  Wrote {bold(str(missing_seeds_path))}")
+
     # ── Grand summary ─────────────────────────────────────────────────────────
     if len(target_conditions) > 1:
         _section("GRAND SUMMARY — seeds needing rerun per condition", width=64)
@@ -656,7 +698,7 @@ def main():
                 any_failures = True
                 print(f"  {bold(cond.name)}  ({len(rerun)} seeds):")
                 array_str = ','.join(str(s) for s in rerun)
-                print(f"    {bold(yellow(f'#SBATCH --array={array_str}'))}")
+                print(f"    {bold(yellow(f'sbatch --array={array_str}'))}")
             else:
                 print(f"  {green(bold(cond.name))}: all complete")
         if not any_failures:
