@@ -35,9 +35,8 @@ Personal scratch and home directories can also be used.
 |------|-------------|
 | `/mnt/research/devolab/mt/mt_clean` | Heather's original data, sbatch files, and cfg files. The README vaguely explains what each folder number contains experiment-wise. |
 | `/mnt/ufs18/nodr/home/kgs/` | Where new experiment directories go. Use this for any experiment not yet started. |
-| `/mnt/gs21/scratch/groups/devolab/Avida4` | Contains all Python analysis scripts and the experiment setup script. Previously used as the working directory for experiment runs — new experiments go on `nodr` instead (see above). |
+| `/mnt/gs21/scratch/groups/devolab/Avida4` | Contains all LODs, Python analysis scripts and the experiment setup script. |
 | `/mnt/research/devolab/Avida4` | AvidaMT and ealib-modern repos. |
-| `/mnt/research/devolab/Avida4/AvidaMT/build` | Compiled executables live here; **do not link to these directly in your sbatch files** |
 | `/mnt/research/devolab/entrenchment-revision-data` | Where tar files go when sending data to Peter — navigate into the correct experiment folder, then condition subfolder |
 
 ---
