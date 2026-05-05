@@ -23,8 +23,6 @@ If you're running low on space in `/mnt/gs21/scratch/groups/devolab`, there are 
 
 Personal scratch and home directories can also be used.
 
-> ⚠️ **All new experiments (not yet started) must be run on `/mnt/ufs18/nodr/home/kgs/`, not scratch.** The scratch file quota is too low for full experiment runs. Use `nodr` for any experiment that hasn't started yet.
-
 > ⚠️ **Growth and stability assays must run on `/mnt/ufs18/nodr/home/kgs/`.** These assays generate an enormous number of files (millions of small `.dat` files across all seeds and conditions). The scratch directories and home directory have a 1M–1.0M file quota that these assays will blow through. The `nodr` filesystem has a 26.2M file quota, which is large enough to handle them.
 
 > ⚠️ **Watch the `nodr` space quota.** Run `quota` on the HPCC regularly while assays are running. The `nodr` filesystem has a 512G space limit and growth/stability assay output can fill it — if you go over quota, jobs will silently fail mid-run with no error in the log (output files will be incomplete or empty). If you see many seeds failing without any SLURM error patterns in the logs, check `quota` first.
