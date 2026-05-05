@@ -460,21 +460,9 @@ Keeping things tidy matters because the HPCC has both storage and file count lim
 
 ## Sending Data to Peter
 
-1. Run `2_data_verify_and_cleanup.sh` from the experiment parent directory (dry run first, then `--delete`). This removes log files, flock `.lock` files, per-seed `ramp.cfg` copies, executables from `config/`, scripts, READMEs, `next-array.txt`, and compresses XMLs.
+1. Move tar files to `/mnt/research/devolab/entrenchment-revision-data/{experiment}/{condition}/` — navigate into the correct experiment folder, then select or create the experimental condition subfolder if needed (e.g. the pop-regulation experiment has a `limit-1200/` folder where both the uni and multi tars generated with a cell limit of 1200 live).
 
-2. Flock `.txt` files (resource usage summaries) are **not** removed by the cleanup script. Delete them now if you don't want them in the tar — or leave them in if you want to keep the resource usage records.
-
-3. Submit the tar script from the experiment parent directory:
-
-   ```bash
-   sbatch 3_tar_uni_and_multi_folders.sbatch
-   ```
-
-   This tars the `-uni` and `-multi` folders simultaneously using pigz. If you used the setup script, `BASE_DIR` and `PREFIX` are already pre-filled. The output will be `{name}-uni.tar.gz` and `{name}-multi.tar.gz` in the parent directory.
-
-4. Move both tar files to `/mnt/research/devolab/entrenchment-revision-data/{experiment}/{condition}/` — navigate into the correct experiment folder, then select or create the experimental condition subfolder if needed (e.g. the pop-regulation experiment has a `limit-1200/` folder where both the uni and multi tars generated with a cell limit of 1200 live).
-
-5. Let Peter know the files are there. Peter has access to everything under `/mnt/research/devolab/entrenchment-revision-data/`, but the system doesn't notify him when files are added, so you need to tell him manually.
+2. Let Peter know the files are there. Peter has access to everything under `/mnt/research/devolab/entrenchment-revision-data/`, but the system doesn't notify him when files are added, so you need to tell him manually.
 
 > ⚠️ **Do not delete any data just because Peter confirmed he received the tar.** That does not mean he has saved it somewhere safe. Make sure you and Peter explicitly agree together that the data can be deleted from the HPCC before removing anything you don't want gone forever.
 
