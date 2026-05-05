@@ -17,10 +17,6 @@ Log into the HPCC graphical interface (Open OnDemand) at:
 - **Submit a support ticket:** https://contact.icer.msu.edu
 - **Check storage/file quota:** type `quota` in the terminal
 
-If you're running low on space in `/mnt/gs21/scratch/groups/devolab`, there are two additional group scratch spaces available:
-- `/mnt/gs21/scratch/groups/cse`
-- `/mnt/gs21/scratch/groups/beacon`
-
 Personal scratch and home directories can also be used.
 
 > ⚠️ **Growth and stability assays must run on `/mnt/ufs18/nodr/home/kgs/`.** These assays generate an enormous number of files (millions of small `.dat` files across all seeds and conditions). The scratch directories and home directory have a 1M–1.0M file quota that these assays will blow through. The `nodr` filesystem has a 26.2M file quota, which is large enough to handle them.
