@@ -17,8 +17,6 @@ Log into the HPCC graphical interface (Open OnDemand) at:
 - **Submit a support ticket:** https://contact.icer.msu.edu
 - **Check storage/file quota:** type `quota` in the terminal
 
-Personal scratch and home directories can also be used.
-
 > ⚠️ **Growth and stability assays must run on `/mnt/ufs18/nodr/home/kgs/`.** These assays generate an enormous number of files (millions of small `.dat` files across all seeds and conditions). The scratch directories and home directory have a 1M–1.0M file quota that these assays will blow through. The `nodr` filesystem has a 26.2M file quota, which is large enough to handle them.
 
 > ⚠️ **Watch the `nodr` space quota.** Run `quota` on the HPCC regularly while assays are running. The `nodr` filesystem has a 512G space limit and growth/stability assay output can fill it — if you go over quota, jobs will silently fail mid-run with no error in the log (output files will be incomplete or empty). If you see many seeds failing without any SLURM error patterns in the logs, check `quota` first.
