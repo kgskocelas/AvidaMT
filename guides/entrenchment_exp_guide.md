@@ -389,10 +389,12 @@ mv {OUTPUT_NAME}.tar.gz /mnt/research/devolab/entrenchment-revision-data/{experi
 
 After the LOD reruns are complete and verified, run the stability assay analysis. This uses the `--analyze lod_entrench_add` mode of `mt_lr_gls`, which re-enters the saved run state from the checkpoint and LOD files — no `ramp.cfg` is needed.
 
-The assay runs each of 12 tissue accretion costs (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048) at two timepoints (transition and final), writing all costs' output into a single folder per seed per timepoint. The resulting structure matches Heather's `008b` data:
+**How the binary works:** One call with `--ea.mt.tissue_accretion_add=1` runs all 12 costs (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048) internally, doubling each time until reaching 4096. You do **not** call it once per cost — a single call covers all of them. Output files (`lod_entrench_all.dat`, `lod_entrench_final.dat`, `lod_entrench_trans.dat`) are opened in **overwrite mode**, so running the binary again in the same directory destroys all prior output. Note also that `--ea.run.updates` has no effect on the analysis; `max_update = 200000` is hardcoded inside the function and the config value is ignored.
+
+The assay runs at two timepoints (transition and final). One directory is created per seed per timepoint, containing output from all 12 costs:
 
 ```
-pop-regulation/
+your-experiment-dir/
 ├── final_entrench_1/        ← seed 1, final timepoint, all 12 costs
 ├── final_entrench_2/
 ├── trans_entrench_1/        ← seed 1, transition timepoint, all 12 costs
@@ -400,51 +402,69 @@ pop-regulation/
 └── ...
 ```
 
-### Step 1 — Generate the sbatch files
+This matches Heather's `008b` data structure.
 
-From your local AvidaMT repo, run:
+### Step 1 — Prepare the sbatch files
 
-```bash
-bash hpcc_scripts/6_generate_stability_assay_sbatchs.sh
-```
-
-This creates two files in `complete_entrenchment_scripts/`:
+The sbatch files are in `hpcc_scripts/` in the AvidaMT repo:
 
 - `trans_stability.sbatch` — timepoint 0 (transition)
 - `final_stability.sbatch` — timepoint 1 (final)
 
-Before uploading, open each sbatch and check that:
+Copy both to your experiment directory on the HPCC, then open each one and update:
 
-- `--array=` is set to the seed range you want to run
-- `--time` and `--mem` are appropriate (start with Heather's `008b` sbatch as a reference)
-- `WORKDIR` points to your experiment directory on `nodr` (stability assays generate many small files — must run on `nodr`, not scratch)
-- `EXE` points to your copied executable
-- `LOD_DIR` points to your multi (LOD rerun) folder
+- `--array=` — seed range to run
+- `--time=168:00:00` — 168 hours is the ICER 7-day maximum; use this as your baseline since the analysis can be slow
+- `WORKDIR` — path to your experiment directory on `nodr`
+- `EXE` — path to your copied executable
+- `LOD_DIR` — path pattern to your multi (LOD rerun) folders
 
-### Step 2 — Upload and submit
-
-Copy both sbatch files to your experiment directory on the HPCC, then submit:
+### Step 2 — Submit
 
 ```bash
 sbatch trans_stability.sbatch
 sbatch final_stability.sbatch
 ```
 
-Each array job creates one `{tp}_entrench_{seed}/` folder and runs all 12 costs sequentially into it. The costs run in order from 1 to 2048; the job is done when all 12 finish.
+Each array job creates one `{tp}_entrench_{seed}/` folder and makes a single binary call that internally runs all 12 costs in order. The job is done when the binary exits.
 
-> ⚠️ **Run on `nodr`.** Stability assays write an enormous number of small `.dat` files. The scratch filesystem file quotas are too low — use `/mnt/ufs18/nodr/home/kgs/` as your `WORKDIR`.
+> ⚠️ **Run on `nodr`.** Stability assays write many small `.dat` files — use `/mnt/ufs18/nodr/home/kgs/` as your `WORKDIR`, not scratch.
 
-### Step 3 — Verify output
+### Step 3 — Monitor and verify
 
-Run `7_verify_stability_assay.py` from the directory containing the `trans_entrench_N/` and `final_entrench_N/` folders:
+While jobs are running or after they finish, run `6_parse_stability_logs.py` from the directory containing the log files to see which costs each seed completed and which timed out:
+
+```bash
+python3 6_parse_stability_logs.py /path/to/log/dir
+```
+
+After all jobs finish, run `7_verify_stability_assay.py` from the directory containing the `trans_entrench_N/` and `final_entrench_N/` folders:
 
 ```bash
 python3 7_verify_stability_assay.py /path/to/experiment/dir
 ```
 
-Seeds are auto-detected. The script checks both conditions (trans and final), confirms the expected output files are present and non-empty, scans Slurm log files for errors, and prints a ready-to-paste `#SBATCH --array=` line for any seeds that need to be rerun.
+Seeds are auto-detected. The script checks both conditions (trans and final), confirms all 12 costs are present in each seed's dat files, scans Slurm log files for errors, and prints a ready-to-paste `#SBATCH --array=` line for any seeds that need to be rerun. For incomplete seeds it also prints the resume cost (`--ea.mt.tissue_accretion_add=<next_cost>`).
 
 Pass `--condition trans` or `--condition final` to check only one timepoint. Pass `--delete-failed` to remove incomplete seed directories so they can be cleanly rerun.
+
+### Handling seeds that time out mid-run
+
+If a seed times out before all 12 costs complete:
+
+1. Identify the resume cost — `6_parse_stability_logs.py` reports the last completed cost per seed, and `7_verify_stability_assay.py` prints the exact `--ea.mt.tissue_accretion_add=<next_cost>` flag to use.
+2. Resubmit that seed with `--ea.mt.tissue_accretion_add=<next_cost>` into a **new directory** (e.g., `final_entrench_1_resume/`). Do not reuse the original directory — calling the binary there again would overwrite the existing output.
+3. After the resume run finishes, **manually concatenate** the partial dat files from both directories (original + resume) before running `7_verify_stability_assay.py` or any downstream analysis. This is the same approach Heather Goldsby used for the original experiment.
+
+### Step 4 — Package for transfer
+
+After all seeds are verified complete, use `8_tar_stability_assay.sbatch` to compress the output:
+
+```bash
+sbatch 8_tar_stability_assay.sbatch
+```
+
+Edit `BASE_DIR` and `OUTPUT_NAME` at the top before submitting.
 
 ---
 
