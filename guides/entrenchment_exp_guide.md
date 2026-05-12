@@ -389,7 +389,7 @@ mv {OUTPUT_NAME}.tar.gz /mnt/research/devolab/entrenchment-revision-data/{experi
 
 After the LOD reruns are complete and verified, run the stability assay analysis. This uses the `--analyze lod_entrench_add` mode of `mt_lr_gls`, which re-enters the saved run state from the checkpoint and LOD files — no `ramp.cfg` is needed.
 
-**How the binary works:** One call with `--ea.mt.tissue_accretion_add=1` runs all 12 costs (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048) internally, doubling each time until reaching 4096. You do **not** call it once per cost — a single call covers all of them. Output files (`lod_entrench_all.dat`, `lod_entrench_final.dat`, `lod_entrench_trans.dat`) are opened in **overwrite mode**, so running the binary again in the same directory destroys all prior output. Note also that `--ea.run.updates` has no effect on the analysis; `max_update = 200000` is hardcoded inside the function and the config value is ignored.
+**How the binary works:** One call with `--ea.mt.tissue_accretion_add=1` runs all 12 costs (1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048) internally, doubling each time until reaching 4096. You do **not** call it once per cost — a single call covers all of them. Output files (`lod_entrench_all.dat`, `lod_entrench_final.dat`) are opened in **overwrite mode**, so running the binary again in the same directory destroys all prior output. Note also that `--ea.run.updates` has no effect on the analysis; `max_update = 200000` is hardcoded inside the function and the config value is ignored.
 
 The assay runs at two timepoints (transition and final). One directory is created per seed per timepoint, containing output from all 12 costs:
 

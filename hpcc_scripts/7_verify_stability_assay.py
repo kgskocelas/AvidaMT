@@ -11,7 +11,7 @@ that internally loops through all 12 costs (1->2048):
 
   {tp}_entrench_{seed}/
       lod_entrench_all.dat
-      lod_entrench_final.dat   (or lod_entrench_trans.dat)
+      lod_entrench_final.dat   (always this name, even for trans timepoint)
       mt_gls.dat
 
 Seeds are auto-detected by scanning for trans_entrench_<N>/ directories.
@@ -44,7 +44,7 @@ class Condition:
 
 
 CONDITIONS = [
-    Condition("trans", "trans_entrench_", "trans", "lod_entrench_trans.dat"),
+    Condition("trans", "trans_entrench_", "trans", "lod_entrench_final.dat"),
     Condition("final", "final_entrench_", "final", "lod_entrench_final.dat"),
 ]
 

@@ -31,6 +31,7 @@ LIBEA_MD_DECL(ANALYSIS_LOD_START_COST, "ea.mt.lod_start_cost", int);
 LIBEA_MD_DECL(ANALYSIS_LOD_TIMEPOINT_TO_ANALYZE, "ea.mt.lod_timepoint_to_analyze", int);
 LIBEA_MD_DECL(ANALYSIS_LOD_START_REP, "ea.mt.lod_analysis_start_rep", int);
 LIBEA_MD_DECL(ANALYSIS_MUTATIONS_OFF, "ea.mt.lod_analysis_mutations_off", int);
+LIBEA_MD_DECL(ANALYSIS_RUN_SINGLE_ENTRENCH_COST, "ea.mt.run_single_entrench_cost", int);
 LIBEA_MD_DECL(ONLY_MC, "ea.mt.only_mc", int);
 
 
@@ -1006,7 +1007,7 @@ namespace ealib {
 
                 //add_ent += 100;
                 add_ent *= 2;
-                if (add_ent >= 4096) {
+                if (add_ent >= 4096 || get<ANALYSIS_RUN_SINGLE_ENTRENCH_COST>(ea, 0)) {
                     entrench_not_found = false;
                 }
                 
