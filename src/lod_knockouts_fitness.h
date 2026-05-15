@@ -612,14 +612,17 @@ namespace ealib {
                 i = lod.end(); --i;
             } else {
                 i=lod.begin(); i++;
-                // find the first to transition
+                // find the first to transition (>= 2 cells = multicellular)
                 for( ; i!=lod.end(); i++) {
-                    if (i->size() > 2) {
+                    if (i->size() >= 2) {
                         break;
                     }
                 }
+                if (i == lod.end()) {
+                    return;
+                }
             }
-            
+
             while (entrench_not_found) {
                 int revert_count = 0;
                 checked_nums.insert(start_mult);
@@ -857,12 +860,16 @@ namespace ealib {
             } else {
                 i=lod.begin(); i++;
                 i_count++;
-                // find the first to transition
+                // find the first to transition (>= 2 cells = multicellular)
                 for( ; i!=lod.end(); i++) {
-                    if (i->size() > 2) {
+                    if (i->size() >= 2) {
                         break;
                     }
                     i_count++;
+                }
+                if (i == lod.end()) {
+                    // No multicellular transition found in LOD; nothing to analyze.
+                    return;
                 }
             }
             
