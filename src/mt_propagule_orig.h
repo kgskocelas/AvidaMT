@@ -39,7 +39,7 @@ LIBEA_MD_DECL(LAST_REPLICATION_STATE, "ea.mt.last_rep_state", int); // 0 uni, 1 
 LIBEA_MD_DECL(REPLICATION_STATE_INDEX, "ea.mt.rep_state_index", int); // increments based on number of flips
 LIBEA_MD_DECL(GENERATION, "ea.mt.generation", int); //
 LIBEA_MD_DECL(TISSUE_ACCRETION_MULT, "ea.mt.tissue_accretion_mult", int); //
-LIBEA_MD_DECL(TISSUE_ACCRETION_ADD, "ea.mt.tissue_accretion_add", int); //
+LIBEA_MD_DECL(TISSUE_ACCRETION_ADD, "ea.mt.tissue_accretion_add", double); //
 
 LIBEA_MD_DECL(NUM_CELLS_ACCRETED, "ea.mt.num_cells_accreted", int); //
 LIBEA_MD_DECL(TIME_DELAY, "ea.mt.time_delay", int); //

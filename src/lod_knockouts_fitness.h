@@ -844,8 +844,8 @@ namespace ealib {
             ;
             
             int num_rep = get<ANALYSIS_LOD_REPS>(ea,1);
-            int add_ent = get<TISSUE_ACCRETION_ADD>(ea,0);
-            int start_mult = add_ent;
+            double add_ent = get<TISSUE_ACCRETION_ADD>(ea,0);
+            double start_mult = add_ent;
             int timepoint = get<ANALYSIS_LOD_TIMEPOINT_TO_ANALYZE>(ea,0);
             
             int meta_size = 1000;
@@ -1067,9 +1067,9 @@ namespace ealib {
         typename line_of_descent<EA>::iterator i=lod.begin(); i++; i++;
         
 
-        int add_ent = get<TISSUE_ACCRETION_ADD>(ea,0);
-        int start_mult = add_ent;
-        
+        double add_ent = get<TISSUE_ACCRETION_ADD>(ea,0);
+        double start_mult = add_ent;
+
         int meta_size = 1000;
         int entrench_not_found = true;
         std::set<int> checked_nums;
