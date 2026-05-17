@@ -272,6 +272,7 @@ public:
         add_option<TISSUE_ACCRETION_MULT>(this);
         add_option<TISSUE_ACCRETION_ADD>(this);
         add_option<ANALYSIS_MUTATIONS_OFF>(this);
+        add_option<ANALYSIS_RUN_SINGLE_ENTRENCH_COST>(this);
         add_option<TRACK_DETAILS>(this);
         add_option<ONLY_MC>(this);
 
