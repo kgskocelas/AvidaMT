@@ -12,12 +12,7 @@ OUTPUT_NAME="stability-assay"
 
 cd "$BASE_DIR"
 
-echo "Cleaning up before compression at $(date)"
-
-# Delete log files, python scripts, and shell scripts
-find . -name "*.log" -o -name "*.py" -o -name "*.sh" | xargs rm -f
-
-echo "Starting compression of stability assays into ${OUTPUT_NAME}.tar.gz at $(date)"
+echo "Starting compression into ${OUTPUT_NAME}.tar.gz at $(date)"
 
 tar -I "pigz -p 8" -cf "${OUTPUT_NAME}.tar.gz" .
 

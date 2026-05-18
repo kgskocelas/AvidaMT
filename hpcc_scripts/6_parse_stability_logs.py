@@ -30,7 +30,13 @@ def parse_log(path: Path) -> dict:
         timepoint = 'final' if m.group(1) == 'final' else 'transition'
         seed = int(m.group(2))
 
-    current_cost = None
+    # lod_entrench_add runs all 12 costs internally without printing per-cost
+    # progress. Completion is detected by finding a second date-like line in the
+    # log (the SLURM script calls `date` at the top and again at the very end).
+    DATE_RE = re.compile(
+        r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w+\s+\d+\s+[\d:]+', re.I
+    )
+    date_line_count = 0
     with open(path, 'r', errors='replace') as f:
         for line in f:
             line = line.strip()
@@ -41,26 +47,20 @@ def parse_log(path: Path) -> dict:
                 if m:
                     seed = int(m.group(1))
 
-            # Cost started
-            m = re.match(r'Cost:\s*(\d+)', line)
-            if m:
-                current_cost = int(m.group(1))
-                costs_started.append(current_cost)
-
-            # Cost's loading step completed
-            if line.endswith('done.') and 'loading' in line and current_cost is not None:
-                costs_completed.append(current_cost)
-
             # Job cancelled by SLURM time limit
             if 'CANCELLED' in line and 'TIME LIMIT' in line:
                 cancelled = True
 
-            # Final date line (last line of a successful run)
-            # The script ends with `date`, which produces a line like "Fri May  8 ..."
-            # We detect a completed run by presence of a second date line after the header date
-        
-    # A run is "finished" if it completed all costs AND wasn't cancelled
-    finished = (not cancelled) and (set(ALL_COSTS).issubset(set(costs_completed)))
+            if DATE_RE.match(line):
+                date_line_count += 1
+
+    # The binary runs all 12 costs internally and never logs per-cost progress.
+    # A run is finished if the final `date` call was reached (>=2 date lines)
+    # and the job was not cancelled.
+    if (not cancelled) and date_line_count >= 2:
+        costs_started   = ALL_COSTS[:]
+        costs_completed = ALL_COSTS[:]
+    finished = (not cancelled) and date_line_count >= 2
 
     last_completed = costs_completed[-1] if costs_completed else None
     last_started = costs_started[-1] if costs_started else None
@@ -85,7 +85,19 @@ def parse_log(path: Path) -> dict:
 
 
 def main():
-    log_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('.')
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('log_dir', nargs='?', default='.',
+                        help='Directory containing log files')
+    parser.add_argument('--seeds', default=None,
+                        help='Expected comma-separated seed list (e.g. from #SBATCH --array=)')
+    args = parser.parse_args()
+
+    log_dir = Path(args.log_dir)
+    expected_seeds = None
+    if args.seeds:
+        expected_seeds = set(int(s) for s in args.seeds.split(','))
+
     log_files = sorted(log_dir.glob('final_*.log')) + sorted(log_dir.glob('trans_*.log'))
 
     if not log_files:
@@ -101,22 +113,33 @@ def main():
             continue
         results.sort(key=lambda r: r['seed'] if r['seed'] is not None else -1)
 
-        print_section(results, timepoint_label)
+        # Detect seeds with no log file at all
+        no_log_seeds = []
+        if expected_seeds:
+            seen_seeds = {r['seed'] for r in results if r['seed'] is not None}
+            no_log_seeds = sorted(expected_seeds - seen_seeds)
+
+        print_section(results, timepoint_label, no_log_seeds)
 
 
-def print_section(results, timepoint_label):
+def print_section(results, timepoint_label, no_log_seeds=None):
+    no_log_seeds = no_log_seeds or []
     fully_done = [r for r in results if r['fully_done']]
     cancelled  = [r for r in results if r['cancelled']]
     incomplete = [r for r in results if not r['fully_done']]
+    total_expected = len(results) + len(no_log_seeds)
 
     label = timepoint_label.upper()
     print()
     print(f"{'='*60}")
-    print(f"  {label} TIMEPOINT — {len(results)} jobs")
+    print(f"  {label} TIMEPOINT — {len(results)} log files found"
+          + (f", {total_expected} expected" if no_log_seeds else ""))
     print(f"{'='*60}")
     print(f"  Fully completed (all 12 costs): {len(fully_done)}")
     print(f"  Cancelled by time limit:        {len(cancelled)}")
     print(f"  Incomplete (any reason):        {len(incomplete)}")
+    if no_log_seeds:
+        print(f"  NO LOG FILE (never started?):   {len(no_log_seeds)}")
     print()
 
     # ── Per-seed detail ───────────────────────────────────────────────────────
@@ -136,11 +159,15 @@ def print_section(results, timepoint_label):
         print(f"{seed_str:<8} {n_done:<12} {last_done:<16} {cancelled_s:<10} {status}")
 
     # ── Seeds that need to be re-run ─────────────────────────────────────────
-    if incomplete:
+    all_rerun = sorted(
+        [r['seed'] for r in incomplete if r['seed'] is not None] + no_log_seeds
+    )
+    if all_rerun:
         print()
         print(f"Seeds needing re-run ({timepoint_label}):")
-        seeds_to_rerun = [str(r['seed']) for r in incomplete if r['seed'] is not None]
-        print(','.join(seeds_to_rerun))
+        if no_log_seeds:
+            print(f"  (includes {len(no_log_seeds)} with no log file)")
+        print(','.join(str(s) for s in all_rerun))
 
     # ── Cost histogram ────────────────────────────────────────────────────────
     print()

@@ -79,16 +79,16 @@ def bold(t):   return _c("1",  t)
 
 
 def detect_seeds(base_dir: Path) -> list:
-    """Scan base_dir for trans_entrench_<N>/ directories."""
-    seed_re = re.compile(r"^trans_entrench_(\d+)$")
-    seeds = []
+    """Scan base_dir for trans_entrench_<N>/ or final_entrench_<N>/ directories."""
+    seed_re = re.compile(r"^(?:trans|final)_entrench_(\d+)$")
+    seeds = set()
     try:
         with os.scandir(base_dir) as it:
             for entry in it:
                 if entry.is_dir():
                     m = seed_re.match(entry.name)
                     if m:
-                        seeds.append(int(m.group(1)))
+                        seeds.add(int(m.group(1)))
     except OSError:
         pass
     return sorted(seeds)
@@ -125,7 +125,8 @@ def _count_costs_in_dat(path: Path) -> set:
                 if not parts:
                     continue
                 try:
-                    val = int(parts[0])
+                    # datafile writes doubles with setprecision(4), e.g. "1.0000"
+                    val = int(round(float(parts[0])))
                     if val in COSTS:
                         costs.add(val)
                 except ValueError:
@@ -308,17 +309,29 @@ def main():
 
     args = parser.parse_args()
     base_dir = Path(args.directory).resolve()
-    target_conditions = CONDITIONS if args.condition == "all" \
-                        else [c for c in CONDITIONS if c.name == args.condition]
 
     if args.seeds:
         seeds = sorted(int(s) for s in args.seeds.split(","))
     else:
         seeds = detect_seeds(base_dir)
         if not seeds:
-            print(red("No trans_entrench_<N>/ directories found. "
+            print(red("No trans_entrench_<N>/ or final_entrench_<N>/ directories found. "
                       "Run from the experiment directory or pass --seeds."))
             sys.exit(1)
+
+    # When --condition all (default), only check conditions that have at least
+    # one directory present — avoids reporting all seeds as missing_dir for a
+    # timepoint that simply wasn't run yet.
+    if args.condition == "all":
+        target_conditions = [
+            c for c in CONDITIONS
+            if any((base_dir / f"{c.dir_prefix}{s}").is_dir() for s in seeds)
+        ]
+        if not target_conditions:
+            print(red("No condition directories found for any detected seed."))
+            sys.exit(1)
+    else:
+        target_conditions = [c for c in CONDITIONS if c.name == args.condition]
 
     print(bold(f"Base directory : {base_dir}"))
     print(bold(f"Seeds          : {len(seeds)} detected"))

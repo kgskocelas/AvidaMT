@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """
-merge_stability_data.py
+14_merge_stability_data.py
 
 Produces two merged datasets per seed/timepoint by combining the original
-power-of-2 costs with intermediate cost runs, then packages them as tar.gz.
+power-of-2 costs with intermediate cost runs. Run from the experiment
+directory. Source folders are never modified; merged output is written to
+new files.
+
+Expected directory structure (flat, before script 15 reorganizes):
+    final_entrench_<seed>/lod_entrench_final.dat
+    trans_entrench_<seed>/lod_entrench_final.dat
+    linear_{final|trans}_<seed>/cost_<N>/lod_entrench_final.dat
+    narrow_{final|trans}_<seed>/cost_<N>/lod_entrench_final.dat
 
 Dataset 1 — "linear": original + linear_{final|trans}_<seed>/cost_<N>/
     Every seed has 7 evenly-spaced intermediate costs (floats ok).
@@ -14,19 +22,16 @@ Dataset 2 — "wholenumber": original + best available intermediate costs
                                     (whole integers only)
 
 Output:
-    merged_linear.tar.gz      -- linear_final_<seed>.dat, linear_trans_<seed>.dat
-    merged_wholenumber.tar.gz -- wholenumber_final_<seed>.dat, wholenumber_trans_<seed>.dat
+    merged/linear/linear_{final|trans}_<seed>.dat
+    merged/wholenumber/wholenumber_{final|trans}_<seed>.dat
 
 Usage:
-    python3 merge_stability_data.py
-    python3 merge_stability_data.py --output /path/to/output/dir
-    python3 merge_stability_data.py --dry-run
+    python3 14_merge_stability_data.py
+    python3 14_merge_stability_data.py --dry-run
 """
 
 import os
 import re
-import tarfile
-import tempfile
 import argparse
 import pandas as pd
 from pathlib import Path
@@ -74,22 +79,12 @@ def get_bracket(df):
     return last_non, first_rev, reason
 
 
-def linear_intermediate_costs(last_non, first_rev):
-    step = (first_rev - last_non) / N_CHUNKS
-    return [round(last_non + i * step, 2) for i in range(1, N_CHUNKS)]
-
-
-def narrow_intermediate_costs(last_non, first_rev):
-    return list(range(int(last_non) + 1, int(first_rev)))
-
-
 # ── Data loading ──────────────────────────────────────────────────────────────
 
 def load_cost_dir(base_dir, prefix, timepoint, seed):
     """
     Load and concatenate all lod_entrench_final.dat files from
     <prefix>_{timepoint}_{seed}/cost_*/
-    Returns a dataframe or None if directory doesn't exist.
     """
     cost_root = Path(base_dir) / f"{prefix}_{timepoint}_{seed}"
     if not cost_root.exists():
@@ -111,16 +106,13 @@ def load_cost_dir(base_dir, prefix, timepoint, seed):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Merge stability assay data into two tar.gz datasets.")
+        description="Merge stability assay data into two datasets.")
     parser.add_argument("base_dir", nargs="?", default=BASE_DIR_DEFAULT)
-    parser.add_argument("--output", default=".",
-                        help="Directory to write tar.gz files (default: current directory)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print what would be merged without writing files")
     args = parser.parse_args()
 
-    base_dir   = Path(args.base_dir)
-    output_dir = Path(args.output)
+    base_dir = Path(args.base_dir)
 
     # Collect all original seeds
     seeds = []
@@ -146,13 +138,11 @@ def main():
 
     print(f"Found {len(seeds)} seed/timepoint combinations")
     print(f"\n{'Seed':<8} {'Timepoint':<8} {'Bracket':<14} {'Type':<8}  "
-          f"{'Linear costs':>6}  {'Wholenumber costs':>17}")
-    print("-" * 72)
+          f"{'Linear costs':>12}  {'Wholenumber costs':>17}")
+    print("-" * 76)
 
-    # Build merged dataframes in memory before writing tar
     linear_files      = {}   # filename -> dataframe
     wholenumber_files = {}
-
     skipped = []
 
     for timepoint, seed, orig_df, last_non, first_rev, reason in seeds:
@@ -187,15 +177,13 @@ def main():
             narrow_df = load_cost_dir(base_dir, "narrow", timepoint, seed)
             if narrow_df is None:
                 print(f"{seed:<8} {timepoint:<8} {bracket_str:<14} {btype:<8}  "
-                      f"WARNING: narrow_{timepoint}_{seed}/ not found — "
-                      f"using linear costs for wholenumber dataset")
-                wholenumber_merged = linear_merged
-            else:
-                wholenumber_merged = (pd.concat([orig_df, narrow_df], ignore_index=True)
-                                        .sort_values(["cost", "iteration"])
-                                        .reset_index(drop=True))
+                      f"{n_linear_costs:>12}  {'(skipped-no narrow)':>17}")
+                skipped.append((timepoint, seed, f"narrow_{timepoint}_{seed}/ missing"))
+                continue
+            wholenumber_merged = (pd.concat([orig_df, narrow_df], ignore_index=True)
+                                    .sort_values(["cost", "iteration"])
+                                    .reset_index(drop=True))
         else:
-            # Wide bracket: wholenumber dataset == linear dataset
             wholenumber_merged = linear_merged
 
         wholenumber_fname = f"wholenumber_{timepoint}_{seed}.dat"
@@ -203,7 +191,7 @@ def main():
         n_wn_costs = wholenumber_merged["cost"].nunique()
 
         print(f"{seed:<8} {timepoint:<8} {bracket_str:<14} {btype:<8}  "
-              f"{n_linear_costs:>6}  {n_wn_costs:>17}")
+              f"{n_linear_costs:>12}  {n_wn_costs:>17}")
 
     if skipped:
         print(f"\nSkipped {len(skipped)} seed(s):")
@@ -217,26 +205,21 @@ def main():
         print("\n[dry-run] No files written.")
         return
 
-    os.makedirs(output_dir, exist_ok=True)
+    # ── Write merged .dat files ───────────────────────────────────────────────
+    linear_out      = base_dir / "merged" / "linear"
+    wholenumber_out = base_dir / "merged" / "wholenumber"
+    os.makedirs(linear_out,      exist_ok=True)
+    os.makedirs(wholenumber_out, exist_ok=True)
 
-    # ── Write tar.gz files ───────────────────────────────────────────────────
-    for archive_name, file_dict in [
-        ("merged_linear.tar.gz",      linear_files),
-        ("merged_wholenumber.tar.gz", wholenumber_files),
-    ]:
-        archive_path = output_dir / archive_name
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Write each dat file to temp dir, then tar them up
-            for fname, df in file_dict.items():
-                fpath = Path(tmpdir) / fname
-                df.to_csv(fpath, sep="\t", index=False)
+    for fname, df in sorted(linear_files.items()):
+        fpath = linear_out / fname
+        df.to_csv(fpath, sep="\t", index=False)
+        print(f"  Wrote: {fpath}")
 
-            with tarfile.open(archive_path, "w:gz") as tar:
-                for fname in sorted(file_dict.keys()):
-                    tar.add(Path(tmpdir) / fname, arcname=fname)
-
-        size_mb = archive_path.stat().st_size / 1024 / 1024
-        print(f"  Wrote: {archive_path}  ({len(file_dict)} files, {size_mb:.1f} MB)")
+    for fname, df in sorted(wholenumber_files.items()):
+        fpath = wholenumber_out / fname
+        df.to_csv(fpath, sep="\t", index=False)
+        print(f"  Wrote: {fpath}")
 
     print("\nDone.")
 
