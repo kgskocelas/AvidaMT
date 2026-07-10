@@ -220,6 +220,7 @@ public:
         // ts specific options
         add_option<GROUP_REP_THRESHOLD>(this);
         add_option<TASK_SWITCHING_COST>(this);
+        add_option<RAMPED_TS_COST>(this);
         add_option<LAST_TASK>(this);
         add_option<NUM_SWITCHES>(this);
         add_option<GERM_MUTATION_PER_SITE_P>(this);
